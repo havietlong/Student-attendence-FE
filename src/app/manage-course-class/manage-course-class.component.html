@@ -1,0 +1,80 @@
+<app-sidebar></app-sidebar>
+
+<div class="container py-4">
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <h3 class="card-title mb-4">Quản lý học phần</h3>
+
+            <!-- Toggle View -->
+            <div class="d-flex justify-content-end mb-3">
+                <div class="btn-group">
+                    <button class="btn btn-outline-secondary" [class.active]="viewMode === 'table'"
+                        (click)="viewMode = 'table'">
+                        <i class="bi bi-table"></i> Dạng bảng
+                    </button>
+                    <button class="btn btn-outline-secondary" [class.active]="viewMode === 'card'"
+                        (click)="viewMode = 'card'">
+                        <i class="bi bi-grid-3x3-gap-fill"></i> Dạng thẻ
+                    </button>
+                </div>
+            </div>
+
+            <!-- Table View -->
+            <div *ngIf="viewMode === 'table'" class="table-responsive">
+                <table class="table table-hover table-striped align-middle mb-0">
+                    <thead class="table-primary">
+                        <tr>
+                            <th>Mã học phần</th>
+                            <th>Tên học phần</th>
+                            <th>Số lớp</th>
+                            <th>Giảng viên</th>
+                            <th>Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let course of courses">
+                            <td>{{ course.subjectCode }}</td>
+                            <td>{{ course.subjectName }}</td>
+                            <td>{{ course.totalClasses }}</td>
+                            <td>
+                                <ul class="mb-0 ps-3">
+                                    <li *ngFor="let gv of course.lecturerNames">{{ gv }}</li>
+                                </ul>
+                            </td>
+                            <td>
+                                <button class="btn btn-sm btn-primary"
+                                    [routerLink]="['/course-detail/course-classes/', course.subjectCode]">
+                                    Xem chi tiết
+                                </button>
+                            </td>
+
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Card View -->
+            <div *ngIf="viewMode === 'card'" class="row g-3 mt-2">
+                <div class="col-md-4" *ngFor="let course of courses">
+                    <div class="card h-100 shadow-sm border">
+                        <div class="card-body">
+                            <h5 class="card-title text-primary">{{ course.subjectName }}</h5>
+                            <h6 class="card-subtitle mb-2 text-muted">Mã: {{ course.subjectCode }}</h6>
+                            <p class="card-text mb-1"><strong>Số lớp:</strong> {{ course.totalClasses }}</p>
+                            <div class="card-text">
+                                <strong>Giảng viên:</strong>
+                                <ul class="ps-3 mb-0">
+                                    <li *ngFor="let lecturer of course.lecturerNames">{{ lecturer }}</li>
+                                </ul>
+                            </div>
+                            <button class="btn btn-primary btn-sm mt-2" (click)="viewDetails(course)">
+                                Xem chi tiết
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>

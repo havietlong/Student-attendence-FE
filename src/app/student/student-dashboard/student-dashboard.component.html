@@ -1,0 +1,114 @@
+<app-sidebar></app-sidebar>
+<div class="container py-4">
+    <div class="row mb-4 ml-5" *ngIf="showWarning">
+        <div class="col-md-12">
+            <div class="alert alert-warning d-flex justify-content-between align-items-center" role="alert">
+                <div>
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    Bạn chưa đăng ký đủ số lượng học phần yêu cầu!
+                </div>
+                <div [routerLink]="['/course-registration']" class="btn btn-sm btn-warning">Đăng ký ngay</div>
+            </div>
+        </div>
+    </div>
+    <div class="row mb-4 ml-5">
+
+        <!-- Profile Card -->
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body d-flex align-items-center">
+                    <img [src]="student.avatarUrl" alt="Avatar" class="rounded-circle me-3" width="80" height="80">
+                    <div>
+                        <h5 class="card-title">{{ student.fullName }}</h5>
+                        <p class="card-text mb-1">Lớp: {{ student.class }}</p>
+                        <p class="card-text mb-1">GPA: <strong>{{ student.gpa }}</strong></p>
+                        <div class="mb-2">
+                            <div class="progress" style="height: 8px">
+                                <div class="progress-bar bg-success" role="progressbar"
+                                    [style.width]="(student.gpa / 4.0) * 100 + '%'" aria-valuemin="0" aria-valuemax="4">
+                                </div>
+                            </div>
+                        </div>
+                        <p class="card-text">Tổng tín chỉ: {{ student.totalCredits }}</p>
+                        <button class="btn btn-outline-primary btn-sm mt-2">Thông tin cá nhân</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Today’s Classes -->
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Lịch học hôm nay</h5>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item" *ngFor="let cls of todayClasses">
+                            <strong>{{ cls.subject }}</strong><br>
+                            <small>{{ cls.time }} - Phòng {{ cls.room }}</small>
+                        </li>
+                    </ul>
+                    <button (click)="navigateToStudentCalendat()" class="btn btn-outline-secondary btn-sm mt-3">Xem tất cả lịch học</button>
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- Upcoming Exams -->
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Lịch thi sắp tới</h5>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item" *ngFor="let exam of upcomingExams">
+                            <strong>{{ exam.subject }}</strong><br>
+                            <small>Ngày {{ exam.date }} - Phòng {{ exam.room }}</small>
+                        </li>
+                    </ul>
+                    <button class="btn btn-outline-danger btn-sm mt-3">Xem lịch thi</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- GPA Trend Chart Placeholder -->
+    <div class="row mb-4 ml-5">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Xu hướng GPA</h5>
+                    <!-- Placeholder chart -->
+                    <p>3.1 → 3.4 → 3.5 → 3.56</p>
+                    <small class="text-muted">(Sẽ thay bằng biểu đồ thực tế sau)</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Course Registration -->
+        <div class="col-md-6">
+            <!-- Attendance Summary -->
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Tình hình điểm danh</h5>
+                    <ul class="list-group list-group-flush small">
+                        <li class="list-group-item d-flex justify-content-between align-items-center"
+                            *ngFor="let item of attendanceRecords">
+                            <span>{{ item.subject }}</span>
+                            <span class="badge" [ngClass]="{
+          'bg-success': item.rate >= 85,
+          'bg-warning text-dark': item.rate < 85 && item.rate >= 65,
+          'bg-danger': item.rate < 65
+        }">
+                                {{ item.rate }}%
+                            </span>
+                        </li>
+                    </ul>
+                    <a routerLink="/attendance" class="btn btn-outline-primary btn-sm mt-3 w-100">Xem chi tiết điểm
+                        danh</a>
+                </div>
+            </div>
+
+
+        </div>
+    </div>
+</div>

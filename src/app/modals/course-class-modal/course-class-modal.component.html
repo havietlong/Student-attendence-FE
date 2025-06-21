@@ -1,0 +1,122 @@
+<!-- Modal backdrop + container -->
+<div class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,0.5);">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content p-4">
+
+      <form [formGroup]="classForm" (ngSubmit)="submitForm()" novalidate>
+        <h3 class="mb-4">Assign Lecturer to Class</h3>
+
+        <div class="mb-3">
+          <label for="subjectCode" class="form-label">Subject</label>
+          <select id="subjectCode" class="form-select" formControlName="subjectCode" required>
+            <option value="" disabled selected>Select a subject</option>
+            <option *ngFor="let subject of subjects" [value]="subject.subjectCode">
+              {{ subject.subjectName }}
+            </option>
+          </select>
+          <div *ngIf="classForm.get('subjectCode')?.invalid && classForm.get('subjectCode')?.touched"
+            class="text-danger small">
+            Please select a subject.
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label for="lecturerId" class="form-label">Lecturer</label>
+          <select id="lecturerId" class="form-select" formControlName="lecturerId">
+            <option value="" disabled selected>Select a lecturer</option>
+            <option *ngFor="let lecturer of lecturers" [value]="lecturer.lecturerId">
+              {{ lecturer.fullName }}
+            </option>
+          </select>
+        </div>
+        <div class="row g-3 mb-3">
+          <div class="col-md-4">
+            <label for="courseClassId" class="form-label">Class Code</label>
+            <input id="courseClassId" type="text" class="form-control" formControlName="courseClassId" required />
+            <div *ngIf="classForm.get('courseClassId')?.invalid && classForm.get('courseClassId')?.touched"
+              class="text-danger small">
+              Class Code is required.
+            </div>
+          </div>
+
+          <div class="col-md-4">
+            <label for="classroom" class="form-label">Classroom</label>
+            <input id="classroom" type="text" class="form-control" formControlName="classroom" required />
+            <div *ngIf="classForm.get('classroom')?.invalid && classForm.get('classroom')?.touched"
+              class="text-danger small">
+              Classroom is required.
+            </div>
+          </div>
+          <div class="col-md-4">
+            <label for="maxCapacity" class="form-label">Max Capacity</label>
+            <input id="maxCapacity" type="number" class="form-control" formControlName="maxCapacity" required />
+          </div>
+        </div>
+
+        <div class="row g-3">
+          <div class="col-md-4">
+            <label for="semester" class="form-label">Semester</label>
+            <input id="semester" type="number" class="form-control" formControlName="semester" required />
+          </div>
+          <div class="col-md-4">
+            <label for="academicYear" class="form-label">Academic Year</label>
+            <input id="academicYear" type="text" class="form-control" formControlName="academicYear" required />
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Days of Week</label>
+            <div class="d-flex gap-2 mb-3">
+              <button type="button" *ngFor="let d of daysOfWeek; let i = index"
+                [class.selected]="selectedDays.includes(d.value)" (click)="toggleDay(d.value)"
+                class="btn btn-outline-primary rounded-circle" style="width:40px; height:40px; padding:0;">
+                {{ d.label.charAt(0) }}
+              </button>
+            </div>
+
+
+
+
+          </div>
+          <div formArrayName="sessions">
+            <div *ngFor="let session of sessions.controls; let i = index" [formGroupName]="i"
+              class="mb-3 border rounded p-2">
+              <p class="fw-bold mb-2">{{ getDayLabel(session.value.dayOfWeek) }}</p>
+
+              <div class="row">
+                <div class="col-md-6">
+                  <label class="form-label">Start Period</label>
+                  <input type="number" class="form-control" formControlName="startPeriod" />
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Period Count</label>
+                  <input type="number" class="form-control" formControlName="periodCount" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="row g-3 mt-3">
+          <div class="col-md-4">
+            <label for="startDate" class="form-label">Start Date</label>
+            <input id="startDate" type="date" class="form-control" formControlName="startDate" required />
+          </div>
+          <div class="col-md-4">
+            <label for="endDate" class="form-label">End Date</label>
+            <input id="endDate" type="date" class="form-control" formControlName="endDate" required />
+          </div>
+          
+          <div class="col-md-4">
+            <label for="registrationDeadline" class="form-label">Registration deadline</label>
+            <input id="registrationDeadline" type="date" class="form-control" formControlName="registrationDeadline" required />
+          </div>
+        </div>
+
+        <div class="mt-4 d-flex justify-content-end gap-2">
+          <button type="button" class="btn btn-secondary" (click)="onClose()">Cancel</button>
+          <button type="submit" class="btn btn-primary" [disabled]="classForm.invalid">Assign</button>
+        </div>
+      </form>
+
+    </div>
+  </div>
+</div>

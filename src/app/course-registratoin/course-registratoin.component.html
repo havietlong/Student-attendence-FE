@@ -1,0 +1,118 @@
+<app-sidebar></app-sidebar>
+<div class="container py-4">
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <div class="alert alert-info mb-4 flex-column" role="alert">
+                <i class="bi bi-info-circle-fill me-2"></i>
+
+                <div class="row mt-4">
+                    <div class="col-md-4">
+                        <div class="alert alert-primary">
+                            <strong>Tín chỉ đã tích lũy:</strong> {{ student.totalCredits }}
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="alert alert-warning">
+                            <strong>Tín chỉ đã chọn kỳ này:</strong> {{ selectedCredits }}
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="alert alert-danger">
+                            <strong>Tín chỉ yêu cầu tối thiểu:</strong> {{ minimumCredits }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filters -->
+            <div class="row g-3 mb-3 align-items-end" *ngIf="!studentId">
+                <div class="col-md-4">
+                    <label class="form-label">Tìm kiếm</label>
+                    <input type="text" class="form-control" placeholder="Tên học phần hoặc giảng viên"
+                        [(ngModel)]="searchTerm">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Số tín chỉ</label>
+                    <select class="form-select" [(ngModel)]="creditFilter">
+                        <option value="">Tất cả</option>
+                        <option *ngFor="let credit of creditOptions" [value]="credit">{{ credit }}</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Giảng viên</label>
+                    <select class="form-select" [(ngModel)]="lecturerFilter">
+                        <option value="">Tất cả</option>
+                        <option *ngFor="let gv of lecturerOptions" [value]="gv">{{ gv }}</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Năm học</label>
+                    <select class="form-select" [(ngModel)]="yearFilter">
+                        <option value="">Tất cả</option>
+                        <option *ngFor="let year of yearOptions" [value]="year">{{ yearLabel(year) }}</option>
+                    </select>
+                </div>
+            </div>
+
+
+
+            <!-- Table -->
+            <form (ngSubmit)="submitRegistration()">
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped align-middle">
+                        <thead class="table-primary ">
+                            <tr>
+                                <th scope="col" *ngIf="!studentId">#</th>
+                                <th scope="col">Mã học phần</th>
+                                <th scope="col">Tên học phần</th>
+                                <th scope="col">Giảng viên</th>
+                                <th scope="col">Số tín chỉ</th>
+                                <th scope="col">Thời gian</th>
+                                <th scope="col" *ngIf="studentId">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let course of filteredCourses(); let i = index"
+                                [class.table-secondary]="!isEligible(course)">
+                                <td *ngIf="!studentId">
+                                    <input type="checkbox" [disabled]="!isEligible(course)"
+                                        [value]="course.courseClassId" [checked]="isSelected(course)"
+                                        (change)="toggleSelection(course)">
+                                </td>
+                                <td>{{ course.courseClassId }}</td>
+                                <td>
+                                    {{ course.subject?.subjectName }}
+                                    <span *ngIf="!isEligible(course)" class="text-danger ms-1"
+                                        title="Bạn chưa đủ điểm tín chỉ">
+                                        <i class="bi bi-lock-fill"></i>
+                                    </span>
+                                </td>
+                                <td>{{ course.lecturer?.fullName || 'Chưa phân công' }}</td>
+                                <td>{{ course.subject?.credit }}</td>
+                                <td>
+                                    {{ getDayOfWeekNames(course.dayOfWeek).join(', ') }}<br />
+                                    {{ course.startDate | date:'dd/MM/yyyy' }} - {{ course.endDate | date:'dd/MM/yyyy'
+                                    }}
+                                </td>
+                                <td *ngIf="studentId">
+                                    <button class="btn btn-sm btn-outline-primary me-1"
+                                        (click)="goToClassPage(course.courseClassId)">
+                                        Xem lịch học
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-primary"
+                                        (click)="goToCalendarPage(course.courseClassId)">
+                                        Bảng điểm danh
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <button *ngIf="!studentId" type="submit" class="btn btn-primary mt-3"
+                    [disabled]="selectedCourses.length === 0">
+                    Đăng ký ({{ selectedCourses.length }})
+                </button>
+            </form>
+        </div>
+    </div>
+</div>

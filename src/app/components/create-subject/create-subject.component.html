@@ -1,0 +1,44 @@
+<form>
+  <div class="row">
+    <div class="col-md-6 mb-3">
+      <label class="form-label">Subject Code</label>
+      <input type="text" class="form-control" [(ngModel)]="subject.subjectCode" name="subjectCode" required />
+    </div>
+
+    <div class="col-md-6 mb-3">
+      <label class="form-label">Subject Name</label>
+      <input type="text" class="form-control" [(ngModel)]="subject.subjectName" name="subjectName" required />
+    </div>
+
+    <div class="col-md-4 mb-3">
+      <label class="form-label">Credit</label>
+      <input type="number" class="form-control" [(ngModel)]="subject.credit" name="credit" required />
+    </div>
+
+    <div class="col-md-4 mb-3">
+      <label class="form-label">Lecture Hours</label>
+      <input type="number" class="form-control" [(ngModel)]="subject.lectureHours" name="lectureHours" required />
+    </div>
+
+    <div class="col-md-4 mb-3">
+      <label class="form-label">Practice Hours</label>
+      <input type="number" class="form-control" [(ngModel)]="subject.practiceHours" name="practiceHours" required />
+    </div>
+
+    <div class="col-md-6 mb-3">
+      <label class="form-label">Major Code (optional)</label>
+      <input type="text" class="form-control" [(ngModel)]="subject.majorCode" name="majorCode" (focus)="fieldFocus.emit('major')"
+ />
+    </div>
+
+    <div class="col-md-6 mb-3">
+      <label class="form-label">Prerequisite Subject Code (optional)</label>
+      <input type="text" class="form-control" [(ngModel)]="subject.prerequisiteSubjectCode" name="prerequisiteSubjectCode"   (focus)="fieldFocus.emit('subject')" />
+    </div>
+  </div>
+
+  <div class="text-end mt-4">
+    <button type="button" class="btn btn-light" (click)="resetSubject()">Reset</button>
+    <button type="button" class="btn btn-success ms-2" (click)="submitSubject()">Submit</button>
+  </div>
+</form>

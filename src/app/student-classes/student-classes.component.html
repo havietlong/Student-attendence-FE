@@ -1,0 +1,26 @@
+<div class="container mt-4">
+  <h3>My Registered Courses</h3>
+
+  <div *ngIf="registeredClasses.length === 0" class="alert alert-info">
+    You haven't registered for any classes yet.
+  </div>
+
+  <div class="card mb-3" *ngFor="let course of registeredClasses">
+    <div class="card-body">
+      <h5 class="card-title">
+        {{ course.subject.subjectName }} ({{ course.subject.subjectCode }})
+      </h5>
+      <p class="card-text">
+        <strong>Lecturer:</strong> {{ course.lecturer?.fullName || 'TBA' }}<br />
+        <strong>Classroom:</strong> {{ course.classroom }}<br />
+        <strong>Schedule:</strong> {{ course.dayOfWeek.map(dayToString).join(', ') }}<br />
+        <strong>Semester:</strong> {{ course.semester }} | Year: {{ course.academicYear }}<br />
+        <strong>Duration:</strong> {{ course.startDate | date:'mediumDate' }} - {{ course.endDate | date:'mediumDate' }}<br />
+        <strong>Deadline:</strong> {{ course.registrationDeadline | date:'short' }}
+      </p>
+      <button class="btn btn-danger btn-sm" (click)="unregister(course.courseClassId)">
+        Unregister
+      </button>
+    </div>
+  </div>
+</div>

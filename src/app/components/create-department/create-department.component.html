@@ -1,0 +1,32 @@
+<form>
+  <div class="row">
+    <div class="col-md-6 mb-3">
+      <label class="form-label">Department Code</label>
+      <input type="text" class="form-control" [(ngModel)]="department.departmentCode" name="departmentCode" />
+    </div>
+    <div class="col-md-6 mb-3">
+      <label class="form-label">Department Name</label>
+      <input type="text" class="form-control" [(ngModel)]="department.departmentName" name="departmentName" />
+    </div>
+    <div class="col-md-6 mb-3">
+      <label class="form-label">Head of Department</label>
+      <input type="text" class="form-control" [(ngModel)]="department.headOfDepartment" name="headOfDepartment" />
+    </div>
+    <div class="col-md-6 mb-3">
+      <label class="form-label">Established Date</label>
+      <input type="date" class="form-control" [(ngModel)]="department.establishedDate" name="establishedDate" />
+    </div>
+    <div class="col-md-6 mb-3">
+      <label class="form-label">Phone Number</label>
+      <input type="text" class="form-control" [(ngModel)]="department.phoneNumber" name="phoneNumber" />
+    </div>
+    <div class="col-md-6 mb-3">
+      <label class="form-label">Email</label>
+      <input type="email" class="form-control" [(ngModel)]="department.email" name="email" />
+    </div>
+  </div>
+  <div class="text-end mt-4">
+    <button type="button" class="btn btn-light" (click)="resetDepartment()">Reset</button>
+    <button type="button" class="btn btn-warning ms-2" (click)="submitDepartment()">Submit</button>
+  </div>
+</form>

@@ -1,0 +1,176 @@
+<app-sidebar></app-sidebar>
+
+<div class="container py-5">
+    <div class="card shadow rounded-4">
+        <div class="card-body">
+            <h3 class="text-primary mb-4">
+                <i class="bi bi-sliders2-vertical me-2"></i> Cấu hình điểm - Lớp:
+                <span class="text-dark">{{ courseClassId }}</span>
+            </h3>
+
+            <form (ngSubmit)="saveConfig()" #configForm="ngForm" novalidate>
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover align-middle shadow-sm rounded">
+                        <thead class="table-primary text-center">
+                            <tr>
+                                <th style="width: 20%;">Mã loại điểm</th>
+                                <th style="width: 35%;">Tên loại điểm</th>
+                                <th style="width: 25%;">Tỷ lệ (%)</th>
+                                <th style="width: 20%;">Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let item of gradingConfig; let i = index">
+                                <!-- Automatically filled -->
+                                <td>
+                                    <input type="text" class="form-control" [value]="item.scoreTypeId" disabled>
+                                </td>
+
+                                <!-- Dropdown selection -->
+                                <td>
+                                    <select [(ngModel)]="item.scoreTypeId" name="type{{i}}"
+                                        (change)="onScoreTypeChange(i, item.scoreTypeId)" class="form-select">
+                                        <option *ngFor="let type of gradeTypes" [value]="type.scoreTypeId">
+                                            {{ type.scoreTypeName }}
+                                        </option>
+                                    </select>
+
+                                </td>
+
+                                <!-- Percentage input -->
+                                <td>
+                                    <div class="input-group">
+                                        <input type="number" class="form-control rounded-start-3"
+                                            [(ngModel)]="item.weightPercent" name="tyLe{{ i }}" required min="0" max="100"
+                                            placeholder="VD: 30">
+                                        <span class="input-group-text rounded-end-3">%</span>
+                                    </div>
+                                </td>
+
+                                <td class="text-center">
+                                    <button type="button" class="btn btn-sm btn-danger" (click)="removeRow(i)">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+
+
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Buttons -->
+                <div class="d-flex justify-content-between align-items-center mt-4">
+                    <div class="">
+                        <div type="button" class="btn btn-outline-secondary rounded-3" (click)="addRow()">
+                            <i class="bi bi-plus-circle me-1"></i> Thêm dòng
+                        </div>
+                        <div class="btn btn-outline-success ml-2" (click)="showModal = true">
+                            <i class="bi bi-plus-circle me-1"></i> Thêm loại điểm
+                        </div>
+
+                    </div>
+
+                    <button type="submit" class="btn btn-primary rounded-3 px-4"
+                        [disabled]="!configForm.form.valid || getTotalPercentage() !== 100">
+                        <i class="bi bi-save me-1"></i> Lưu cấu hình
+                    </button>
+                </div>
+
+                <!-- Alert -->
+                <div *ngIf="getTotalPercentage() !== 100" class="alert alert-warning mt-4 rounded-3">
+                    <i class="bi bi-exclamation-triangle me-2"></i> Tổng tỷ lệ hiện tại là <strong>{{
+                        getTotalPercentage() }}%</strong>. Vui lòng đảm bảo tổng là <strong>100%</strong>.
+                </div>
+
+                <div *ngIf="getTotalPercentage() === 100" class="alert alert-success mt-4 rounded-3">
+                    <i class="bi bi-check-circle me-2"></i> Cấu hình hợp lệ! Tổng tỷ lệ = <strong>100%</strong>.
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal (still using *ngIf) -->
+<div *ngIf="showModal" class="modal d-block" tabindex="-1" style="background: rgba(0,0,0,0.5)">
+    <div class="modal-dialog modal-dialog-centered" style="min-width: 600px;">
+        <div class="modal-content rounded-5">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">Thêm loại điểm mới</h5>
+                <button type="button" class="btn-close btn-close-white" (click)="showModal = false"></button>
+            </div>
+
+            <div class="modal-body">
+
+                <!-- 🔹 Existing Score Types Table -->
+                <div class="mb-4">
+                    <label class="form-label fw-bold">Loại điểm đã có:</label>
+                    <table class="table table-bordered align-middle table-sm">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width: 30%">Mã loại điểm</th>
+                                <th style="width: 50%">Tên loại điểm</th>
+                                <th style="width: 20%">Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let type of gradeTypes; let i = index">
+                                <td *ngIf="editIndex !== i">{{ type.scoreTypeId }}</td>
+                                <td *ngIf="editIndex !== i">{{ type.scoreTypeName }}</td>
+
+                                <!-- Editable row -->
+                                <ng-container *ngIf="editIndex === i">
+                                    <td><input type="text" class="form-control" [(ngModel)]="editBuffer.scoreTypeId">
+                                    </td>
+                                    <td><input type="text" class="form-control" [(ngModel)]="editBuffer.scoreTypeName">
+                                    </td>
+                                </ng-container>
+
+                                <td class="text-center">
+                                    <ng-container *ngIf="editIndex !== i">
+                                        <button class="btn btn-sm btn-outline-primary me-1" (click)="startEdit(i)">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-danger" (click)="deleteScoreType(type)">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </ng-container>
+
+                                    <ng-container *ngIf="editIndex === i">
+                                        <button class="btn btn-sm btn-success me-1"
+                                            (click)="saveEdit(type.scoreTypeId)">
+                                            <i class="bi bi-check-lg"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-secondary" (click)="cancelEdit()">
+                                            <i class="bi bi-x-lg"></i>
+                                        </button>
+                                    </ng-container>
+                                </td>
+                            </tr>
+
+                            <!-- 🔹 New Score Type Row -->
+                            <tr class="table">
+                                <td>
+                                    <input type="text" class="form-control" [(ngModel)]="newScoreType.scoreTypeId"
+                                        name="newMaLoaiDiem">
+                                </td>
+                                <td>
+                                    <input type="text" class="form-control" [(ngModel)]="newScoreType.scoreTypeName"
+                                        name="newTenLoaiDiem">
+                                </td>
+                                <td class="text-center">
+                                    <button class="btn btn-sm btn-primary" (click)="submitScoreType()"
+                                        [disabled]="isDuplicateScoreType()">
+                                        <i class="bi bi-plus-circle"></i> Thêm
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+</div>

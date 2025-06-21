@@ -1,0 +1,28 @@
+<form>
+  <div class="row">
+    <div class="col-md-6 mb-3">
+      <label class="form-label">Major Code</label>
+      <input type="text" class="form-control" [(ngModel)]="major.majorCode" name="majorCode" required />
+    </div>
+
+    <div class="col-md-6 mb-3">
+      <label class="form-label">Major Name</label>
+      <input type="text" class="form-control" [(ngModel)]="major.majorName" name="majorName" required />
+    </div>
+
+    <div class="col-md-6 mb-3">
+      <label class="form-label">Department Code</label>
+      <input type="text" class="form-control" [(ngModel)]="major.departmentCode" name="departmentCode" required />
+    </div>
+
+    <div class="col-md-6 mb-3">
+      <label class="form-label">Required Credits</label>
+      <input type="number" class="form-control" [(ngModel)]="major.requiredCredits" name="requiredCredits" required />
+    </div>
+  </div>
+
+  <div class="text-end mt-4">
+    <button type="button" class="btn btn-light" (click)="resetMajor()">Reset</button>
+    <button type="button" class="btn btn-warning ms-2" (click)="submitMajor()">Submit</button>
+  </div>
+</form>

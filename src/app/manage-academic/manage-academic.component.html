@@ -1,0 +1,60 @@
+<app-sidebar></app-sidebar>
+<div class="container py-5">
+  <div class="card shadow rounded-4 ml-5">
+    <div class="row g-0 ">
+      <!-- Left Image -->
+      <div class="col-md-4 d-none d-md-block py-4 px-4">
+       
+          <app-record-preview [recordType]="focusedField"
+            (valueSelected)="onFieldValueSelected($event)"></app-record-preview>
+      
+      </div>
+
+      <!-- Right Form Section -->
+      <div class="col-md-8">
+        <div class="card-body  py-4">
+          <h2 class="mb-4 text-center">Create Records</h2>
+
+          <!-- Tabs -->
+          <ul class="nav nav-tabs mb-4 justify-content-center" role="tablist">
+            <li class="nav-item" (click)="selectedTab = 'user'">
+              <a class="nav-link" [class.active]="selectedTab === 'user'" role="tab">Class</a>
+            </li>
+            <li class="nav-item" (click)="selectedTab = 'department'">
+              <a class="nav-link" [class.active]="selectedTab === 'department'" role="tab">Department</a>
+            </li>
+            <li class="nav-item" (click)="selectedTab = 'lecturer'">
+              <a class="nav-link" [class.active]="selectedTab === 'lecturer'" role="tab">Major</a>
+            </li>
+            <li class="nav-item" (click)="selectedTab = 'student'">
+              <a class="nav-link" [class.active]="selectedTab === 'student'" role="tab">Subject</a>
+            </li>
+          </ul>
+
+          <!-- Tab Content -->
+          <div [ngSwitch]="selectedTab">
+            <!-- User Form Placeholder -->
+            <div *ngSwitchCase="'user'">
+              <app-create-class (fieldFocus)="onFieldFocused($event)"></app-create-class>
+            </div>
+
+            <!-- Department Form -->
+            <div *ngSwitchCase="'department'">
+              <app-create-department (fieldFocus)="onFieldFocused($event)"></app-create-department>
+            </div>
+
+            <!-- Lecturer Form Placeholder -->
+            <div *ngSwitchCase="'lecturer'">
+              <app-create-major (fieldFocus)="onFieldFocused($event)"></app-create-major>
+            </div>
+
+            <!-- Student Form Placeholder -->
+            <div *ngSwitchCase="'student'">
+              <app-create-subject (fieldFocus)="onFieldFocused($event)"></app-create-subject>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

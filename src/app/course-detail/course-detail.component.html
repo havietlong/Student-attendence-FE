@@ -1,0 +1,80 @@
+<app-sidebar></app-sidebar>
+
+<div class="container py-4">
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <div class="" *ngIf="!lecturerId">
+                <h3 class="card-title text-primary">
+                    Chi tiết học phần: {{ subjectName }} ({{ subjectCode }})
+                </h3>
+
+                <p class="text-muted mb-4">
+                    Tổng số lớp: {{ filteredClasses.length }}
+                </p>
+            </div>
+            <div class="" *ngIf="lecturerId">
+                <h3 class="card-title text-primary">
+                    Danh sách lớp giảng dạy: {{ lecturerName }} ({{ lecturerId }})
+                </h3>
+
+                <p class="text-muted mb-4">
+                    Tổng số lớp: {{ filteredClasses.length }}
+                </p>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table  table-striped align-middle">
+                    <thead class="table-primary">
+                        <tr>
+                            <th>Mã môn học</th>
+                            <th>Mã lớp</th>
+                            <th>Giảng viên</th>
+                            <th>Phòng học</th>
+                            <th>Thứ</th>
+                            <th>Ngày bắt đầu</th>
+                            <th>Ngày kết thúc</th>
+                            <th>Sĩ số tối đa</th>
+                            <th>Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let cls of filteredClasses">
+                            <td>{{ cls.subjectCode }}</td>
+                            <td>{{ cls.courseClassId }}</td>
+                            <td>{{ cls.lecturer?.fullName || 'Chưa phân công' }}</td>
+                            <td>{{ cls.classroom }}</td>
+                            <td>
+                                <span *ngFor="let day of cls.dayOfWeek; let last = last">
+                                    {{ dayName(day) }}<span *ngIf="!last">, </span>
+                                </span>
+                            </td>
+                            <td>{{ cls.startDate | date: 'dd/MM/yyyy' }}</td>
+                            <td>{{ cls.endDate | date: 'dd/MM/yyyy' }}</td>
+                            <td>{{ cls.maxCapacity }}</td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-primary me-1 mb-2"
+                                    (click)="goToClassPage(cls.courseClassId)">
+                                    Xem lịch học
+                                </button>
+
+                                <button class="btn btn-sm btn-outline-primary mb-2"
+                                    (click)="goToStudentListPage(cls.courseClassId)">
+                                    Danh sách học sinh
+                                </button>
+
+                                <button class="btn btn-sm btn-outline-warning mb-2"
+                                    (click)="goToGradeConfig(cls.courseClassId)">
+                                    Cấu hình điểm lớp học
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div *ngIf="filteredClasses.length === 0" class="alert alert-info mt-4">
+                Không có lớp học nào cho học phần này.
+            </div>
+        </div>
+    </div>
+</div>

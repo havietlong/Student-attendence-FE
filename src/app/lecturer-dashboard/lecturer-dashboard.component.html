@@ -1,0 +1,77 @@
+<app-sidebar></app-sidebar>
+
+<div class="container py-4">
+  <div class="row mb-4 ml-5">
+
+    <!-- Lecturer Profile -->
+    <div class="col-md-4">
+      <div class="card">
+        <div class="card-body d-flex align-items-center">
+          <img [src]="lecturer.avatarUrl" alt="Avatar" class="rounded-circle me-3" width="80" height="80">
+          <div>
+            <h5 class="card-title">{{ lecturer.fullName }}</h5>
+            <p class="card-text mb-1">Khoa: {{ lecturer.department }}</p>
+            <p class="card-text">Tổng lớp đang dạy: {{ totalClasses }}</p>
+            <button class="btn btn-outline-primary btn-sm mt-2">Thông tin cá nhân</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Today's Teaching Schedule -->
+    <div class="col-md-4">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">Lịch giảng dạy hôm nay</h5>
+          <ul class="list-group list-group-flush">
+            <li class="list-group-item" *ngFor="let cls of todayClasses">
+              <strong>{{ cls.subject }}</strong><br>
+              <small>{{ cls.time }} - Phòng {{ cls.room }}</small><br>
+              <button class="btn btn-sm btn-outline-success mt-1">Điểm danh</button>
+            </li>
+          </ul>
+          <button (click)="navigateToLecturerCalendat()" class="btn btn-outline-secondary btn-sm mt-3">Xem lịch dạy đầy đủ</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pending Grades -->
+    <div class="col-md-4">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">Điểm cần nhập</h5>
+          <ul class="list-group list-group-flush">
+            <li class="list-group-item" *ngFor="let grade of pendingGrades">
+              <strong>{{ grade.subject }}</strong> - {{ grade.component }}<br>
+              <small>Lớp: {{ grade.classId }}</small><br>
+              <button class="btn btn-sm btn-outline-danger mt-1">Nhập điểm</button>
+            </li>
+          </ul>
+          <button class="btn btn-outline-danger btn-sm mt-3">Tới trang quản lý điểm</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Attendance Summary & Recent Materials -->
+  <div class="row mb-4 ml-5 d-flex" style="justify-content: end;">
+        
+
+    <!-- Recent Course Docs or Exams -->
+    <div class="col-md-8">
+      <div class="card h-100">
+        <div class="card-body">
+          <h5 class="card-title">Tài liệu / Đề thi gần đây</h5>
+          <ul class="list-group list-group-flush">
+            <li class="list-group-item" *ngFor="let doc of recentDocs">
+              <strong>{{ doc.title }}</strong><br>
+              <small>Loại: {{ doc.type }} - Cập nhật: {{ doc.updatedAt | date:'shortDate' }}</small>
+              <div *ngIf="doc.status === 'incomplete'" class="text-danger small mt-1">⚠ Chưa hoàn tất</div>
+            </li>
+          </ul>
+          <a routerLink="/documents" class="btn btn-outline-secondary btn-sm mt-3 w-100">Quản lý tài liệu & đề thi</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

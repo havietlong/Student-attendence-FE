@@ -1,0 +1,140 @@
+<app-sidebar></app-sidebar>
+
+<div class="calendar-container">
+
+  <!-- TOP TOOLBAR -->
+  <div
+    class="calendar-toolbar d-flex justify-content-between align-items-center mb-3 px-3 py-2 border-bottom shadow-sm rounded-3 bg-light">
+    <div class="d-flex flex-column">
+
+      <div class="mb-2">
+        <button class="btn btn-outline-primary me-2" (click)="goToToday()">Today</button>
+
+
+        <button class="btn btn-outline-secondary me-2" (click)="prevPeriod()">
+          <i class="bi bi-chevron-left"></i>
+        </button>
+        <button class="btn btn-outline-secondary me-2" (click)="nextPeriod()">
+          <i class="bi bi-chevron-right"></i>
+        </button>
+        <strong>{{ viewDate | date: view === 'month' ? 'MMMM y' : 'fullDate' }}</strong>
+      </div>
+      <div class="d-flex">
+        <select class="form-select d-inline-block w-auto mr-3" [(ngModel)]="selectedCourseClassId"
+          (change)="filterEvents()">
+          <option value="">All Courses</option>
+          <option *ngFor="let id of courseClassIds" [value]="id">{{ id }}</option>
+        </select>
+
+        <div *ngIf="selectedCourseClassId">
+          <label for="sessionNumber">Session #</label>
+          <input type="number" id="sessionNumber" class="form-control d-inline-block w-auto mx-2"
+            [(ngModel)]="sessionNumber" (input)="originalEvents.length > 0 && findSessionDate()" min="1">
+
+          <span *ngIf="isValidDate(sessionDate)">
+            📅 Date: {{ sessionDate | date: 'fullDate' }}
+          </span>
+          <span *ngIf="sessionNumber && !isValidDate(sessionDate)">
+            ❌ No such session or invalid date
+          </span>
+
+
+        </div>
+
+
+      </div>
+    </div>
+
+    <div>
+      <button class="btn btn-outline-dark me-2" (click)="toggleView()">
+        Switch to {{ view === 'month' ? 'Day' : 'Month' }} View
+      </button>
+      <button class="btn btn-success" (click)="openAddCourseModal()">
+        <i class="bi bi-plus-lg me-1"></i> Add Course
+      </button>
+    </div>
+  </div>
+
+  <!-- CALENDAR VIEW -->
+  <div class="row">
+    <mwl-calendar-month-view *ngIf="view === 'month'" [viewDate]="viewDate" [events]="events"
+      (contextmenu)="onRightClick($event)">
+    </mwl-calendar-month-view>
+
+    <div style="width: 60%;">
+      <mwl-calendar-day-view *ngIf="view === 'day'" [viewDate]="viewDate" [events]="events" [hourSegments]="2"
+        [hourSegmentHeight]="30" [dayStartHour]="6" [dayEndHour]="18" [refresh]="refresh"
+        (contextmenu)="onRightClick($event)" >
+      </mwl-calendar-day-view>
+
+    </div>
+    <div *ngIf="view === 'day'" class="border rounded shadow-sm bg-white p-2 mb-5"
+      style="width: 40%; max-height: 100vh; overflow-y: auto;">
+
+      <!-- Small month calendar -->
+      <mwl-calendar-month-view [viewDate]="viewDate" [events]="events"
+        (dayClicked)="onMiniCalendarDayClicked($event.day.date)" [activeDayIsOpen]="false" [refresh]="refresh">
+      </mwl-calendar-month-view>
+
+      <!-- Navigation buttons -->
+      <div class="mt-3 text-center">
+        <button class="btn btn-sm btn-outline-secondary me-1" (click)="goToPreviousMonth()">
+          <i class="bi bi-chevron-left"></i>
+        </button>
+        <button class="btn btn-sm btn-outline-secondary" (click)="goToNextMonth()">
+          <i class="bi bi-chevron-right"></i>
+        </button>
+      </div>
+
+      <!-- SESSION CARDS -->
+      <!-- SESSION CARDS -->
+      <div *ngIf="selectedSessions.length > 0" class="mt-3">
+        <h5 class="mb-3">Lịch học ngày {{ selectedDate | date: 'fullDate' }}</h5>
+
+        <div class="d-flex flex-column gap-3">
+          <div *ngFor="let session of selectedSessions" class="card shadow-sm w-100">
+            <div class="card-body">
+              <div class="d-flex justify-content-between flex-wrap">
+                <div>
+                  <h6 class="mb-1 text-primary">{{ session.title }}</h6>
+                  <p class="mb-1">
+                    🕒 {{ session.start | date: 'shortTime' }} – {{ session.end | date: 'shortTime' }}
+                  </p>
+                  <p class="mb-0 text-muted">
+                    Mã lớp: {{ session.courseClassId }}
+                  </p>
+                </div>
+
+                <div class="text-end mt-2 mt-sm-0">
+                  <div class="btn btn-outline-primary btn-sm"
+                    (click)="goToStudentList(session.courseClassId, session.start, session.classSessionId)">
+                    Đi Tới Buổi Học {{session.classSessionId}}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+
+      <!-- No session -->
+      <div *ngIf="selectedSessions?.length === 0" class="text-muted mt-3">
+        Không có buổi học nào trong ngày này.
+      </div>
+    </div>
+
+  </div>
+
+
+</div>
+
+<app-course-class-modal *ngIf="showModal" [initialDate]="selectedDate" (close)="closeModal()">
+</app-course-class-modal>
+
+<ul *ngIf="menuVisible" [ngStyle]="{'top.px': menuY, 'left.px': menuX}" class="context-menu">
+  <li (click)="onMenuClick('View Details')">View Details</li>
+  <li (click)="onMenuClick('Add Course')">Add Course</li>
+  <li *ngIf="view === 'day'" (click)="onMenuClick('Set Exam Day')">Set Exam Day</li>
+</ul>

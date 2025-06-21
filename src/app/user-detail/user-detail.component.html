@@ -1,0 +1,160 @@
+<app-sidebar></app-sidebar>
+<div class="container py-4">
+    <div class="card shadow border-0 mt-5">
+        <div class="card-body p-4">
+
+            <!-- Avatar + Basic Info -->
+            <div class="d-flex align-items-center mb-4">
+                <img [src]="previewImageUrl || 'http://localhost:3000'+user.image || 'https://via.placeholder.com/100'"
+                    class="rounded-circle me-4" width="100" height="100" alt="Avatar">
+                <div>
+                    <h4 class="mb-1">{{ user.fullName }}</h4>
+                    <p class="text-muted mb-0">{{ user.email }}</p>
+                    <span class="badge bg-secondary">{{ user.role | titlecase }}</span>
+                </div>
+            </div>
+
+            <!-- File Upload -->
+            <div class="mb-4">
+                <label class="form-label">Change Profile Picture</label>
+                <input type="file" class="form-control" (change)="onImageChange($event)">
+            </div>
+
+            <!-- Tabs -->
+            <ul class="nav nav-tabs mb-3" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#basicInfo" type="button">Basic
+                        Info</button>
+                </li>
+                <li class="nav-item" role="presentation" *ngIf="user.role === 'student'">
+                    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#studentInfo" type="button">Student
+                        Info</button>
+                </li>
+                <li class="nav-item" role="presentation" *ngIf="user.role === 'lecturer'">
+                    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#lecturerInfo" type="button">Lecturer
+                        Info</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#changePassword" type="button">
+                        Change Password
+                    </button>
+                </li>
+            </ul>
+
+            <div class="tab-content">
+
+                <!-- Basic Info -->
+                <div class="tab-pane fade show active" id="basicInfo">
+                    <form (ngSubmit)="updateUser()">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="fullName" class="form-label">Full Name</label>
+                                <input [(ngModel)]="user.fullName" name="fullName" id="fullName" class="form-control"
+                                    required />
+                            </div>
+                            <div class="col-md-6">
+                                <label for="email" class="form-label">Email</label>
+                                <input [(ngModel)]="user.email" name="email" id="email" type="email"
+                                    class="form-control" required />
+                            </div>
+                            <div class="col-md-6">
+                                <label for="status" class="form-label">Status</label>
+                                <select disabled [(ngModel)]="user.status" name="status" class="form-select">
+                                    <option value="active">Active</option>
+                                    <option value="inactive">Inactive</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="lastLoginAt" class="form-label">Last Login</label>
+                                <input [value]="user.lastLoginAt | date:'medium'" class="form-control" disabled />
+                            </div>
+                        </div>
+                        <div class="text-end mt-4">
+                            <button class="btn btn-primary">Update Profile</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Student Info -->
+                <div class="tab-pane fade" id="studentInfo" *ngIf="student">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Date of Birth</label>
+                            <input [value]="student.dateOfBirth | date:'yyyy-MM-dd'" class="form-control" disabled />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Gender</label>
+                            <input [value]="student.gender === 'M' ? 'Male' : 'Female'" class="form-control" disabled />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Class</label>
+                            <input [value]="student.class?.classId" class="form-control" disabled />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Phone</label>
+                            <input [value]="student.phoneNumber" class="form-control" disabled />
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label">Address</label>
+                            <input [value]="student.address" class="form-control" disabled />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Lecturer Info -->
+                <div class="tab-pane fade" id="lecturerInfo" *ngIf="lecturer">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Degree</label>
+                            <input [value]="lecturer.degree" class="form-control" disabled />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Specialization</label>
+                            <input [value]="lecturer.specialization" class="form-control" disabled />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Department</label>
+                            <input [value]="lecturer.department?.name" class="form-control" disabled />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Phone</label>
+                            <input [value]="lecturer.phoneNumber" class="form-control" disabled />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Change Password -->
+                <div class="tab-pane fade" id="changePassword">
+                    <form (ngSubmit)="changePassword()" #passwordForm="ngForm">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Current Password</label>
+                                <input type="password" class="form-control" name="currentPassword"
+                                    [(ngModel)]="passwordData.currentPassword" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">New Password</label>
+                                <input type="password" class="form-control" name="newPassword"
+                                    [(ngModel)]="passwordData.newPassword" required minlength="6">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Confirm New Password</label>
+                                <input type="password" class="form-control" name="confirmPassword"
+                                    [(ngModel)]="passwordData.confirmPassword" required>
+                            </div>
+                        </div>
+
+                        <div class="text-end mt-4">
+                            <button class="btn btn-warning" type="submit" [disabled]="passwordForm.invalid">
+                                Update Password
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+
+            </div>
+
+        </div>
+    </div>
+</div>

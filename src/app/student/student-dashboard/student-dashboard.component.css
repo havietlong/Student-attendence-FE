@@ -1,0 +1,16 @@
+
+.card-title {
+  color: #343a40;
+}
+
+.card {
+  border-radius: 0.75rem;
+}
+
+.progress {
+  background-color: #e9ecef;
+}
+
+.progress-bar {
+  transition: width 0.6s ease;
+}

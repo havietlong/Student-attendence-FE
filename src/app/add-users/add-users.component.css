@@ -1,0 +1,22 @@
+/* Sidebar stays full height and scrollable if needed */
+.col-sm-auto.bg-light.sticky-top {
+  height: 100vh;
+  overflow-y: auto;
+}
+
+/* Card expands height as content grows */
+.card {
+  height: auto !important;
+  overflow: visible;
+}
+
+/* Image preview styling */
+.avatar-preview {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%; /* makes it circular */
+  object-fit: cover; /* crop image nicely inside */
+  border: 2px solid #dee2e6; /* subtle border */
+  box-shadow: 0 0 8px rgba(0,0,0,0.1);
+}
+

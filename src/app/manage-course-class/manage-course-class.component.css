@@ -1,0 +1,7 @@
+.card-title {
+  font-weight: 600;
+}
+
+.table td, .table th {
+  vertical-align: middle;
+}

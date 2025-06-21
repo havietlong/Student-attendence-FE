@@ -1,0 +1,56 @@
+<form [formGroup]="classForm" (ngSubmit)="onSubmit()">
+  <div class="row">
+    <div class="col-md-6 mb-3">
+      <label class="form-label">Class ID</label>
+      <input type="text" class="form-control" formControlName="classId" />
+      <div *ngIf="classForm.get('classId')?.invalid && classForm.get('classId')?.touched" class="text-danger mt-1">
+        Class ID is required and max 10 characters.
+      </div>
+    </div>
+
+    <div class="col-md-6 mb-3">
+      <label class="form-label">Class Name</label>
+      <input type="text" class="form-control" formControlName="className" />
+      <div *ngIf="classForm.get('className')?.invalid && classForm.get('className')?.touched" class="text-danger mt-1">
+        Class Name is required and max 50 characters.
+      </div>
+    </div>
+
+    <div class="col-md-6 mb-3">
+      <label class="form-label">Major ID</label>
+      <input type="text" class="form-control" formControlName="majorId" />
+      <div *ngIf="classForm.get('majorId')?.invalid && classForm.get('majorId')?.touched" class="text-danger mt-1">
+        Major ID is required and max 10 characters.
+      </div>
+    </div>
+
+    <div class="col-md-6 mb-3">
+      <label class="form-label">Academic Year</label>
+      <input type="text" class="form-control" formControlName="academicYear" />
+      <div *ngIf="classForm.get('academicYear')?.invalid && classForm.get('academicYear')?.touched" class="text-danger mt-1">
+        Academic Year is required and max 20 characters.
+      </div>
+    </div>
+
+    <div class="col-md-6 mb-3">
+      <label class="form-label">Homeroom Teacher</label>
+      <input type="text" class="form-control" formControlName="homeroomTeacher" />
+      <div *ngIf="classForm.get('homeroomTeacher')?.invalid && classForm.get('homeroomTeacher')?.touched" class="text-danger mt-1">
+        Teacher name is required and max 100 characters.
+      </div>
+    </div>
+
+    <div class="col-md-6 mb-3">
+      <label class="form-label">Class Size</label>
+      <input type="number" class="form-control" formControlName="classSize" />
+      <div *ngIf="classForm.get('classSize')?.invalid && classForm.get('classSize')?.touched" class="text-danger mt-1">
+        Class size is required and must be a number.
+      </div>
+    </div>
+  </div>
+
+  <div class="text-end mt-4">
+    <button type="button" class="btn btn-light" (click)="classForm.reset()">Reset</button>
+    <button type="submit" class="btn btn-warning ms-2" [disabled]="classForm.invalid">Create Class</button>
+  </div>
+</form>
