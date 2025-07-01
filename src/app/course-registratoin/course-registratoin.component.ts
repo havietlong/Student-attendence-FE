@@ -3,7 +3,8 @@ import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { SidebarComponent } from "../components/sidebar/sidebar.component";
 import { HttpClient } from '@angular/common/http';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { DynamicTableFilterComponent } from "../dynamic-table-filter/dynamic-table-filter.component";
 
 export interface CourseClass {
   courseClassId: string;
@@ -54,19 +55,27 @@ export interface CourseClass {
 @Component({
   selector: 'app-course-registratoin',
   standalone: true,
-  imports: [CommonModule, FormsModule, SidebarComponent],
+  imports: [CommonModule, FormsModule, SidebarComponent, DynamicTableFilterComponent, RouterLink],
   templateUrl: './course-registratoin.component.html',
   styleUrl: './course-registratoin.component.css'
 })
 export class CourseRegistratoinComponent {
+  student = {
+    accumulatedCredits: 0,
+    earnedCredits: 0
+  };
+
+  displayedCourses: CourseClass[] = [];
   searchTerm = '';
+  majorName: string = '';
   creditFilter: string = '';
   lecturerFilter: string = '';
   selectedCourses: CourseClass[] = [];
-  student = {
-    totalCredits: 92
-  };
+  // student = {
+  //   totalCredits: 92
+  // };
   studentId: boolean = false; // Default to true
+  studentIdCode!:string ;
 
 
   minimumCredits = 12;
@@ -76,7 +85,15 @@ export class CourseRegistratoinComponent {
 
   }
 
-  constructor(private http: HttpClient, private route: ActivatedRoute, private router:Router) { }
+  updateFilteredCourses(filtered: CourseClass[]) {
+    console.log('filtered', filtered);
+
+    this.displayedCourses = filtered;
+    console.log(this.displayedCourses);
+
+  }
+
+  constructor(private http: HttpClient, private route: ActivatedRoute, private router: Router) { }
 
 
   availableCourses: CourseClass[] = [
@@ -109,52 +126,92 @@ export class CourseRegistratoinComponent {
     // }
   ];
 
-   goToClassPage(courseClassId: string) {
+  filterConfig = [
+    { key: 'courseClassId', label: 'Mã lớp học phần' },
+    { key: 'subject.subjectName', label: 'Tên học phần' },
+    { key: 'lecturer.fullName', label: 'Giảng viên' },
+    { key: 'subject.credit', label: 'Số tín chỉ' },
+    { key: 'academicYear', label: 'Năm học' }
+  ];
+
+  goToClassPage(courseClassId: string) {
     this.router.navigate(['/calendar', courseClassId]);
   }
 
-   goToCalendarPage(courseClassId: string) {
+  goToCalendarPage(courseClassId: string) {
     this.router.navigate(['/studentList', courseClassId]);
   }
 
   isEligible(course: CourseClass): boolean {
-    return this.student.totalCredits >= (course.subject?.minCreditRequired || 0);
+    return this.student.accumulatedCredits >= (course.subject?.minCreditRequired || 0);
   }
 
   ngOnInit() {
-  const studentId = this.route.snapshot.paramMap.get('studentId');
-  const user = localStorage.getItem('user');
-  if (!user) return;
+    const studentIdParam = this.route.snapshot.paramMap.get('studentId');
 
-  const parsedUser = JSON.parse(user);
-   // Set based on your role logic
+    if (typeof window !== 'undefined') { // Ensure browser environment
+      const user = localStorage.getItem('user');
+      if (!user) return;
 
-  if (studentId) {
-    this.studentId = true;
-    this.http.get<CourseClass[]>(`http://localhost:3000/course-classes/student/` + studentId)
-      .subscribe({
-        next: (courses) => this.availableCourses = courses,
-        error: (err) => console.error('Failed to load course classes', err)
-      });
-  } else {
-    const userId = parsedUser.userId;
-    this.http.get<any>(`http://localhost:3000/students/${userId}`).subscribe({
-      next: (student) => {
-        this.student.totalCredits = 999999;
-        const majorId = student.class.majorId;
+      const parsedUser = JSON.parse(user);
 
-        this.http.get<CourseClass[]>(`http://localhost:3000/course-classes/filter?majorId=${majorId}`)
+      if (studentIdParam) {
+        this.studentId = true;
+        this.http.get<CourseClass[]>(`http://localhost:3000/course-classes/student/${studentIdParam}`)
           .subscribe({
-            next: (courses) => this.availableCourses = courses,
+            next: (courses) => {
+              this.availableCourses = courses;
+              console.log('Student Courses:', this.availableCourses);
+              this.displayedCourses = courses;
+            },
             error: (err) => console.error('Failed to load course classes', err)
           });
-      },
-      error: (err) => {
-        console.error('Failed to fetch student info', err);
+      } else {
+        const userId = parsedUser.userId;
+        console.log(userId);
+
+        this.http.get<any>(`http://localhost:3000/students/user/${userId}`).subscribe({
+          next: (student) => {
+            console.log(student);
+
+            const majorId = student.class?.majorId; // Optional chaining for safety
+            const majorName = student.class?.major.majorName; // Optional chaining for safety
+            this.majorName = majorName;
+            const studentId = student.studentId;
+            this.studentIdCode = studentId;
+            console.log('bitch', student);
+
+
+            this.http.get<any[]>(`http://localhost:3000/average-grades/student/${studentId}`).subscribe({
+              next: (grades) => {
+                if (grades.length > 0) {
+                  // You can take the latest or the highest semester as current
+                  const latestGrade = grades[grades.length - 1];
+                  this.student.accumulatedCredits = latestGrade.creditsAccumulated;
+                  this.student.earnedCredits = latestGrade.creditsEarned;
+                }
+              },
+              error: (err) => console.error('Failed to fetch average grades:', err)
+            });
+
+            this.http.get<CourseClass[]>(`http://localhost:3000/course-classes/available/${studentId}/${majorId}`)
+              .subscribe({
+                next: (courses) => {
+                  this.availableCourses = courses;
+                  console.log('Available Courses:', this.availableCourses);
+                  this.displayedCourses = courses;
+                },
+                error: (err) => console.error('Failed to load available courses', err)
+              });
+          },
+          error: (err) => {
+            console.error('Failed to fetch student info', err);
+          }
+        });
       }
-    });
+    }
   }
-}
+
 
 
 
@@ -237,7 +294,11 @@ export class CourseRegistratoinComponent {
     } else {
       this.selectedCourses.splice(index, 1);
     }
+
+    // Update earnedCredits whenever selection changes
+    this.student.earnedCredits = this.selectedCredits;
   }
+
 
 
 
@@ -251,11 +312,11 @@ export class CourseRegistratoinComponent {
       alert('Không tìm thấy người dùng. Vui lòng đăng nhập lại.');
       return;
     }
-
+    this.isLoading = true; // Start loading
     const userId = JSON.parse(user).userId;
 
     // Step 1: Fetch student by userId
-    this.http.get<any>(`http://localhost:3000/students/${userId}`).subscribe({
+    this.http.get<any>(`http://localhost:3000/students/user/${userId}`).subscribe({
       next: (student) => {
         const studentId = student.studentId;
 
@@ -264,7 +325,7 @@ export class CourseRegistratoinComponent {
           studentId: studentId,
           classId: course.courseClassId,
           registrationDate: new Date().toISOString(),
-          status: 'Pending' // Or 'Approved' based on your logic
+
         }));
 
         let completed = 0;
@@ -275,13 +336,13 @@ export class CourseRegistratoinComponent {
             next: () => {
               completed++;
               if (completed === payloads.length) {
-                alert(`Bạn đã đăng ký thành công ${payloads.length} học phần!`);
-                this.selectedCourses = [];
+                this.updateAverageGradeCredits(studentId);
               }
             },
             error: (err) => {
               console.error('Đăng ký thất bại:', err);
               alert('Có lỗi xảy ra khi đăng ký. Vui lòng thử lại.');
+              this.isLoading = false;
             }
           });
         });
@@ -289,9 +350,58 @@ export class CourseRegistratoinComponent {
       error: (err) => {
         console.error('Không thể tìm sinh viên từ userId:', err);
         alert('Không thể xác định sinh viên. Vui lòng thử lại.');
+        this.isLoading = false;
       }
     });
   }
+
+  updateAverageGradeCredits(studentId: string) {
+    const totalNewCredits = this.selectedCredits;
+
+    // You can fetch the latest average_grade record for this student
+    this.http.get<any[]>(`http://localhost:3000/average-grades/student/${studentId}`).subscribe({
+      next: (grades) => {
+        if (grades.length === 0) {
+          alert('Không tìm thấy bản ghi điểm trung bình cho sinh viên này.');
+          this.isLoading = false;
+          return;
+        }
+
+        const latestGrade = grades[grades.length - 1];
+        const updatedCredits = latestGrade.creditsAccumulated + totalNewCredits;
+
+        // PATCH the updated credits
+        this.http.patch(`http://localhost:3000/average-grades/${latestGrade.averageGradeId}`, {
+          creditsEarned: updatedCredits
+        }).subscribe({
+          next: () => {
+            alert(`Bạn đã đăng ký thành công ${this.selectedCourses.length} học phần và đã cập nhật tổng tín chỉ.`);
+            this.selectedCourses = [];
+            this.student.accumulatedCredits = updatedCredits; // Optional: update UI immediately
+            this.isLoading = false;
+            this.isSuccess = true; // Show success screen
+            setTimeout(() => {
+              this.isSuccess = false;
+              window.location.reload();
+            }, 2000);
+
+          },
+          error: (err) => {
+            console.error('Cập nhật tín chỉ thất bại:', err);
+            alert('Đăng ký thành công nhưng cập nhật tín chỉ thất bại.');
+            this.isLoading = false;
+          }
+        });
+      },
+      error: (err) => {
+        console.error('Lỗi khi lấy điểm trung bình:', err);
+        this.isLoading = false;
+      }
+    });
+  }
+
+  isLoading: boolean = false;
+  isSuccess: boolean = false;
 
 
 }

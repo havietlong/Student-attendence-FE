@@ -1,58 +1,58 @@
 <app-sidebar></app-sidebar>
-<div class="container py-5">
-  <div class="card shadow rounded-4 ml-5">
-    <div class="row g-0 ">
-      <!-- Left Image -->
-      <div class="col-md-4 d-none d-md-block py-4 px-4">
-       
-          <app-record-preview [recordType]="focusedField"
-            (valueSelected)="onFieldValueSelected($event)"></app-record-preview>
-      
+
+<div class="container py-5 ">
+  <!-- Page Card Wrapper -->
+  <div class="card shadow-lg rounded-4 p-4 ml-5" style="background-color: rgba(255, 255, 255, 0.9);">
+
+    <!-- Table Selector and Add Button -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <div class="btn-group">
+        <button class="btn btn-outline-primary" (click)="selectEntity('class')">Class</button>
+        <button class="btn btn-outline-primary" (click)="selectEntity('departments')">Department</button>
+        <button class="btn btn-outline-primary" (click)="selectEntity('majors')">Major</button>
+        <button class="btn btn-outline-primary" (click)="selectEntity('subject')">Subject</button>
       </div>
+      <button class="btn btn-success" (click)="openModal()">+ Create New</button>
+    </div>
 
-      <!-- Right Form Section -->
-      <div class="col-md-8">
-        <div class="card-body  py-4">
-          <h2 class="mb-4 text-center">Create Records</h2>
+    <app-dynamic-table-filter [data]="availableCourses" (filtered)="updateFilteredCourses($event)"
+      [filterConfig]="filterConfig">
+    </app-dynamic-table-filter>    
+    <!-- Manage Table Inside Card -->
+    <div class="card shadow rounded-4 p-1" style="background-color: rgba(255, 255, 255, 0.95);">
+      <app-manage-table [records]="records" [entityName]="selectedEntity" [displayKeys]="columnConfigs[selectedEntity]"
+        (refresh)="loadRecords()">
+      </app-manage-table>
+    </div>
+  </div>
+</div>
 
-          <!-- Tabs -->
-          <ul class="nav nav-tabs mb-4 justify-content-center" role="tablist">
-            <li class="nav-item" (click)="selectedTab = 'user'">
-              <a class="nav-link" [class.active]="selectedTab === 'user'" role="tab">Class</a>
-            </li>
-            <li class="nav-item" (click)="selectedTab = 'department'">
-              <a class="nav-link" [class.active]="selectedTab === 'department'" role="tab">Department</a>
-            </li>
-            <li class="nav-item" (click)="selectedTab = 'lecturer'">
-              <a class="nav-link" [class.active]="selectedTab === 'lecturer'" role="tab">Major</a>
-            </li>
-            <li class="nav-item" (click)="selectedTab = 'student'">
-              <a class="nav-link" [class.active]="selectedTab === 'student'" role="tab">Subject</a>
-            </li>
-          </ul>
+<!-- Modal Background -->
+<div class="modal-backdrop fade show" *ngIf="showModal" (click)="closeModal()"></div>
 
-          <!-- Tab Content -->
-          <div [ngSwitch]="selectedTab">
-            <!-- User Form Placeholder -->
-            <div *ngSwitchCase="'user'">
-              <app-create-class (fieldFocus)="onFieldFocused($event)"></app-create-class>
-            </div>
+<!-- Modal Card -->
+<div class="modal fade show d-block" *ngIf="showModal" tabindex="-1" style="background: rgba(0,0,0,0.3);">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content rounded-4 shadow" style="background-color: rgba(255, 255, 255, 0.95);">
+      <div class="modal-header">
+        <h5 class="modal-title">Create {{ selectedEntity | titlecase }}</h5>
+        <button type="button" class="btn-close" (click)="closeModal()"></button>
+      </div>
+      <div class="modal-body">
+        <!-- Tabs Inside Modal -->
+        <ul class="nav nav-tabs mb-4 justify-content-center" role="tablist">
+          <li class="nav-item" *ngFor="let tab of entityTabs" (click)="selectedTab = tab.value">
+            <a class="nav-link" [class.active]="selectedTab === tab.value" role="tab">{{ tab.label }}</a>
+          </li>
+        </ul>
 
-            <!-- Department Form -->
-            <div *ngSwitchCase="'department'">
-              <app-create-department (fieldFocus)="onFieldFocused($event)"></app-create-department>
-            </div>
-
-            <!-- Lecturer Form Placeholder -->
-            <div *ngSwitchCase="'lecturer'">
-              <app-create-major (fieldFocus)="onFieldFocused($event)"></app-create-major>
-            </div>
-
-            <!-- Student Form Placeholder -->
-            <div *ngSwitchCase="'student'">
-              <app-create-subject (fieldFocus)="onFieldFocused($event)"></app-create-subject>
-            </div>
-          </div>
+        <!-- Tab Content -->
+        <div [ngSwitch]="selectedTab">
+          <app-create-class *ngSwitchCase="'class'" (fieldFocus)="onFieldFocused($event)"></app-create-class>
+          <app-create-department *ngSwitchCase="'department'"
+            (fieldFocus)="onFieldFocused($event)"></app-create-department>
+          <app-create-major *ngSwitchCase="'major'" (fieldFocus)="onFieldFocused($event)"></app-create-major>
+          <app-create-subject *ngSwitchCase="'subject'" (fieldFocus)="onFieldFocused($event)"></app-create-subject>
         </div>
       </div>
     </div>

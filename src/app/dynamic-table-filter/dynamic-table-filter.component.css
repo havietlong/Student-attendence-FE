@@ -1,0 +1,81 @@
+.filter-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.attribute-selector-pill {
+    background-color: #f1f3f5;
+    padding: 6px 10px;
+    border-radius: 20px;
+    display: inline-flex;
+}
+
+.filter-pill {
+    background-color: #f1f3f5;
+    border-radius: 20px;
+    padding: 6px 10px;
+}
+
+.pill-label {
+    font-weight: 500;
+    font-size: 14px;
+}
+
+select.form-select-sm {
+    min-width: 120px;
+}
+
+button.btn-sm {
+    height: 30px;
+    padding: 0 8px;
+}
+
+.gap-2 {
+    gap: 8px;
+}
+
+/* Make the dropdown compact like a pill */
+.pill-dropdown {
+    border-radius: 20px;
+    padding: 2px 8px;
+    font-size: 14px;
+    height: 30px;
+    min-width: 120px;
+    max-width: 150px;
+    display: inline-block;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+/* Keep buttons small and compact */
+.pill-button, .btn-sm {
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-size: 14px;
+    height: 30px;
+}
+
+.filter-pill {
+    background-color: #f1f3f5;
+    border-radius: 20px;
+    padding: 6px 10px;
+    display: flex;
+    align-items: center;
+}
+
+.pill-label {
+    font-weight: 500;
+    font-size: 14px;
+}
+
+select.form-select-sm {
+    min-width: 100px;
+    max-width: 150px;
+    height: 30px;
+}
+
+.gap-2 {
+    gap: 8px;
+}

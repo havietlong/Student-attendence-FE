@@ -14,7 +14,49 @@ import { SidebarComponent } from '../components/sidebar/sidebar.component';
   styleUrl: './add-users.component.css',
 })
 export class AddUsersComponent {
+  departments: any[] = [];
+  majors: any[] = [];
+  degreeOptions = ['Bachelor', 'Master', 'Doctor', 'PhD', 'Professor'];
+  isLoading: boolean = false;
+  isSuccess: boolean = false;
+  classList: any[] = [];
+
+  selectedDepartment: any = '';
+
   constructor(private http: HttpClient) { }
+
+  ngOnInit() {
+    this.http.get<any[]>('http://localhost:3000/departments').subscribe(res => {
+      this.departments = res;
+      console.log(this.departments);
+
+    });
+    // 👇 Fetch class list here
+    this.http.get<any[]>('http://localhost:3000/class').subscribe(res => {
+      this.classList = res;
+      console.log(this.classList);
+    });
+  }
+
+  onDepartmentChange() {
+    const dept = this.departments.find(d => d.departmentCode === this.selectedDepartment);
+    console.log(this.selectedDepartment);
+
+    // Reset specialization when changing department
+    this.specialization = [];
+
+    if (dept && dept.majors.length > 0) {
+      // Remove duplicate majors (by name)
+      const uniqueMajors = Array.from(new Set(dept.majors.map((m: { majorName: any; }) => m.majorName)))
+        .map(name => dept.majors.find((m: { majorName: unknown; }) => m.majorName === name));
+
+      this.majors = uniqueMajors;
+    } else {
+      this.majors = [];
+    }
+  }
+
+
 
   // User fields
   first_name = '';
@@ -32,14 +74,14 @@ export class AddUsersComponent {
 
   // Lecturer
   degree = '';
-  specialization = '';
+  specialization: string[] = [];
   departmentCode = '';
 
   // For preview
   previewUrl: string | ArrayBuffer | null = null;
   selectedFile: File | null = null;
+  createdStudentId: string = '';
   createdUserId: string = '';
-
   onFileSelected(event: any) {
     const file = event.target.files[0];
     if (file) {
@@ -52,79 +94,130 @@ export class AddUsersComponent {
     }
   }
 
+
+
   onSubmit() {
-  const generatedPassword = this.generatePassword();
-  const fullName = this.first_name + ' ' + this.last_name;
+    this.isLoading = true; // 🔄 Start loading
+    this.isSuccess = false;
 
-  const user: any = {
-    fullName: fullName,
-    email: this.email,
-    role: this.role,
-    password: generatedPassword,
-    status: 'active'
-  };
+    const generatedPassword = this.generatePassword();
+    const fullName = this.first_name + ' ' + this.last_name;
 
-  this.http.post<any>('http://localhost:3000/users', user).subscribe(res => {
-    this.createdUserId = res.userId;
-
-    let patchPayload: any = {
+    const user: any = {
       fullName: fullName,
-      dateOfBirth: this.birthday,
-      gender: this.gender,
-      address: this.address,
       email: this.email,
-      phoneNumber: this.phone_number,        
+      role: this.role,
+      password: generatedPassword,
+      status: 'active'
     };
 
-    if (this.role === 'student') {
-      patchPayload = {
-        ...patchPayload,
-        classId: this.ma_lop,
-        studyStatus: 'enrolled'
-      };
+    this.http.post<any>('http://localhost:3000/users', user).subscribe({
+      next: (res) => {
+        if (!res?.user.userId) {
+          console.error('User ID not returned. Aborting.');
+          this.isLoading = false;
+          return;
+        }
+        this.createdUserId = res.lecturerId;
+        this.createdStudentId = res.studentId;
 
-      this.http.patch(`http://localhost:3000/students/${this.createdUserId}`, patchPayload).subscribe(() => {
-        console.log('Student patched successfully');
-        this.sendEmail(fullName, this.email, generatedPassword);
-      });
+        let patchPayload: any = {
+          fullName: fullName,
+          dateOfBirth: this.birthday,
+          gender: this.gender,
+          address: this.address,
+          email: this.email,
+          phoneNumber: this.phone_number,
+        };
 
-    } else if (this.role === 'lecturer') {
-      patchPayload = {
-        ...patchPayload,
-        degree: this.degree,
-        specialization: this.specialization,
-        departmentCode: this.departmentCode
-      };
+        if (this.role === 'student') {
+          patchPayload = {
+            ...patchPayload,
+            classId: this.ma_lop,
+            studyStatus: 'enrolled'
+          };
 
-      this.http.patch(`http://localhost:3000/lecturers/${this.createdUserId}`, patchPayload).subscribe(() => {
-        console.log('Lecturer patched successfully');
-        this.sendEmail(fullName, this.email, generatedPassword);
-      });
-    }
+          this.http.patch(`http://localhost:3000/students/${this.createdStudentId}`, patchPayload).subscribe({
+            next: () => {
+              console.log('Student patched successfully');
+              this.sendEmail(fullName, this.email, generatedPassword, true);
 
-    // Step 3: Upload avatar
-    if (this.selectedFile) {
-      const formData = new FormData();
-      formData.append('avatar', this.selectedFile);
-      formData.append('userId', this.createdUserId);
+              const gpaPayload = {
+                studentId: this.createdStudentId,
+                semester: 1,
+                academicYear: '2024-2025',
+                semesterGpaScale10: 0,
+                semesterGpaScale4: 0,
+                cumulativeGpaScale10: 0,
+                cumulativeGpaScale4: 0,
+                academicClassification: 'Not classified',
+                creditsEarned: 0,
+                creditsAccumulated: 0,
+                calculatedAt: new Date()
+              };
 
-      this.http.post<any>('http://localhost:3000/users/upload-avatar', formData).subscribe(uploadRes => {
-        console.log('Avatar uploaded!');
-        this.image = uploadRes.image;
-      });
-    }
+              this.http.post('http://localhost:3000/average-grades', gpaPayload).subscribe({
+                next: () => console.log('GPA record created successfully.'),
+                error: (err) => console.error('Failed to create GPA record:', err)
+              });
+            },
+            error: (err) => {
+              console.error('Failed to patch student:', err);
+              this.isLoading = false;
+            }
+          });
 
-    // Log for debugging (optional)
-    console.log(`Account created for ${this.email} with password: ${generatedPassword}`);
-  });
-}
+        } else if (this.role === 'lecturer') {
+          patchPayload = {
+            ...patchPayload,
+            degree: this.degree,
+            specialization: this.specialization,
+            departmentCode: this.selectedDepartment
+          };
 
-// Helper function to send email
-sendEmail(fullName: string, email: string, password: string) {
-  const emailPayload = {
-    to: email,
-    subject: 'Your Account Credentials',
-    html: `
+          this.http.patch(`http://localhost:3000/lecturers/${this.createdUserId}`, patchPayload).subscribe({
+            next: () => {
+              console.log('Lecturer patched successfully');
+              this.sendEmail(fullName, this.email, generatedPassword, true);
+            },
+            error: (err) => {
+              console.error('Failed to patch lecturer:', err);
+              this.isLoading = false;
+            }
+          });
+        }
+
+        if (this.selectedFile) {
+          const formData = new FormData();
+          formData.append('avatar', this.selectedFile);
+          formData.append('userId', this.createdUserId);
+
+          this.http.post<any>('http://localhost:3000/users/upload-avatar', formData).subscribe({
+            next: (uploadRes) => {
+              console.log('Avatar uploaded!');
+              this.image = uploadRes.image;
+            },
+            error: (err) => console.error('Avatar upload failed:', err)
+          });
+        }
+
+        console.log(`Account created for ${this.email} with password: ${generatedPassword}`);
+      },
+      error: (err) => {
+        console.error('Failed to create user:', err);
+        this.isLoading = false;
+      }
+    });
+  }
+
+
+
+  // Helper function to send email
+  sendEmail(fullName: string, email: string, password: string, showSuccess: boolean = false) {
+    const emailPayload = {
+      to: email,
+      subject: 'Your Account Credentials',
+      html: `
       <p>Hello ${fullName},</p>
       <p>Your account has been successfully created. Here are your login credentials:</p>
       <p><strong>Email:</strong> ${email}</p>
@@ -132,19 +225,26 @@ sendEmail(fullName: string, email: string, password: string) {
       <p>Please change your password after logging in for the first time.</p>
       <p>Best regards,<br>Admin Team</p>
     `
-  };
+    };
 
-  this.http.post('http://localhost:3000/mail/send', emailPayload).subscribe({
-    next: () => {
-      console.log('Email sent successfully.');
-      // You can show a success message here if desired
-    },
-    error: (err) => {
-      console.error('Failed to send email:', err);
-      // Show an error toast or message if needed
-    }
-  });
-}
+    this.http.post('http://localhost:3000/mail/send', emailPayload).subscribe({
+      next: () => {
+        console.log('Email sent successfully.');
+        this.isLoading = false;
+        if (showSuccess) {
+          this.isSuccess = true;
+          setTimeout(() => {
+            this.isSuccess = false;
+          }, 3000); // hide after 3 seconds
+        }
+      },
+      error: (err) => {
+        console.error('Failed to send email:', err);
+        this.isLoading = false;
+      }
+    });
+  }
+
 
 
 
@@ -171,9 +271,26 @@ sendEmail(fullName: string, email: string, password: string) {
     this.image = '';
     this.ma_lop = '';
     this.degree = '';
-    this.specialization = '';
+    this.specialization = [];
     this.departmentCode = '';
     this.previewUrl = null;
     this.selectedFile = null;
   }
+
+
+
+  toggleSpecialization(majorName: string) {
+    if (this.specialization.includes(majorName)) {
+      // If already selected, remove it
+      this.specialization = this.specialization.filter(item => item !== majorName);
+    } else {
+      // If not selected, add it
+      this.specialization.push(majorName);
+    }
+  }
+
+  isSelected(option: string): boolean {
+    return Array.isArray(this.specialization) && this.specialization.includes(option);
+  }
+
 }

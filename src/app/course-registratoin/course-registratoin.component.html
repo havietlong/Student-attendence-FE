@@ -1,5 +1,11 @@
 <app-sidebar></app-sidebar>
 <div class="container py-4">
+     <div class="alert alert-success d-flex align-items-center" role="alert">
+        <i class="bi bi-journal-text me-2"></i>
+        <div>
+            <strong>Trang Đăng Ký Học Phần</strong> - Sinh viên ngành <strong>{{ majorName }}</strong> chỉ có thể đăng ký các học phần phù hợp với ngành học của mình.
+        </div>
+    </div>
     <div class="card shadow-sm">
         <div class="card-body">
             <div class="alert alert-info mb-4 flex-column" role="alert">
@@ -8,52 +14,29 @@
                 <div class="row mt-4">
                     <div class="col-md-4">
                         <div class="alert alert-primary">
-                            <strong>Tín chỉ đã tích lũy:</strong> {{ student.totalCredits }}
+                            <strong>Tín chỉ đã tích lũy:</strong> {{ student.accumulatedCredits }}
                         </div>
                     </div>
                     <div class="col-md-4">
                         <div class="alert alert-warning">
-                            <strong>Tín chỉ đã chọn kỳ này:</strong> {{ selectedCredits }}
+                            <strong>Tín chỉ đã chọn kỳ này:</strong> {{ student.earnedCredits }}                                                        
                         </div>
+                        
                     </div>
                     <div class="col-md-4">
                         <div class="alert alert-danger">
                             <strong>Tín chỉ yêu cầu tối thiểu:</strong> {{ minimumCredits }}
                         </div>
                     </div>
+                    
                 </div>
+                Theo dõi học phần bạn đã đăng ký kỳ này <b style="cursor: pointer;" [routerLink]="['/manage-course/'+studentIdCode]"> tại đây</b>
             </div>
 
             <!-- Filters -->
-            <div class="row g-3 mb-3 align-items-end" *ngIf="!studentId">
-                <div class="col-md-4">
-                    <label class="form-label">Tìm kiếm</label>
-                    <input type="text" class="form-control" placeholder="Tên học phần hoặc giảng viên"
-                        [(ngModel)]="searchTerm">
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label">Số tín chỉ</label>
-                    <select class="form-select" [(ngModel)]="creditFilter">
-                        <option value="">Tất cả</option>
-                        <option *ngFor="let credit of creditOptions" [value]="credit">{{ credit }}</option>
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label">Giảng viên</label>
-                    <select class="form-select" [(ngModel)]="lecturerFilter">
-                        <option value="">Tất cả</option>
-                        <option *ngFor="let gv of lecturerOptions" [value]="gv">{{ gv }}</option>
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label">Năm học</label>
-                    <select class="form-select" [(ngModel)]="yearFilter">
-                        <option value="">Tất cả</option>
-                        <option *ngFor="let year of yearOptions" [value]="year">{{ yearLabel(year) }}</option>
-                    </select>
-                </div>
-            </div>
-
+            <app-dynamic-table-filter [data]="availableCourses" (filtered)="updateFilteredCourses($event)"  [filterConfig]="filterConfig" >
+            </app-dynamic-table-filter>
+           
 
 
             <!-- Table -->
@@ -72,7 +55,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr *ngFor="let course of filteredCourses(); let i = index"
+                            <tr *ngFor="let course of displayedCourses"
                                 [class.table-secondary]="!isEligible(course)">
                                 <td *ngIf="!studentId">
                                     <input type="checkbox" [disabled]="!isEligible(course)"
@@ -115,4 +98,17 @@
             </form>
         </div>
     </div>
+</div>
+
+<div *ngIf="isLoading" class="loading-overlay">
+  <div class="spinner"></div>
+  <p>Creating account, please wait...</p>
+</div>
+
+<div *ngIf="isSuccess" class="success-overlay">
+  <div class="checkmark-circle">
+    <div class="background"></div>
+    <div class="checkmark">&#10003;</div>
+  </div>
+  <p>User created and email sent successfully!</p>
 </div>

@@ -1,0 +1,29 @@
+<div *ngIf="records.length === 0" class="text-center text-muted mt-5">
+  No records found.
+</div>
+
+<table class="table table-striped table-hover align-middle w-100" *ngIf="records.length > 0">
+  <thead class="table-primary">
+    <tr>
+      <th>#</th>
+      <th *ngFor="let key of displayKeys">{{ key | titlecase }}</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    <!-- Apply ngx-pagination pipe here -->
+    <tr *ngFor="let record of records | paginate: { itemsPerPage: itemsPerPage, currentPage: currentPage }; let i = index">
+      <td>{{ (currentPage - 1) * itemsPerPage + i + 1 }}</td>
+      <td *ngFor="let key of displayKeys">{{ record[key] }}</td>
+      <td>
+        <button class="btn btn-sm btn-outline-danger" (click)="deleteRecord(record)">Delete</button>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- Pagination Controls -->
+<pagination-controls 
+  *ngIf="records.length > itemsPerPage"
+  (pageChange)="currentPage = $event">
+</pagination-controls>

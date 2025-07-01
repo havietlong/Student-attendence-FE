@@ -11,7 +11,7 @@
           <select id="subjectCode" class="form-select" formControlName="subjectCode" required>
             <option value="" disabled selected>Select a subject</option>
             <option *ngFor="let subject of subjects" [value]="subject.subjectCode">
-              {{ subject.subjectName }}
+              {{ subject.subjectName }} - {{ subject.subjectCode }}
             </option>
           </select>
           <div *ngIf="classForm.get('subjectCode')?.invalid && classForm.get('subjectCode')?.touched"

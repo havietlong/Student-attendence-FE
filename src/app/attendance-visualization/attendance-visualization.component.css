@@ -1,0 +1,58 @@
+.attendance-table-container {
+  overflow-x: auto;
+}
+
+.attendance-cell {
+  height: 40px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.circle {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background-color: #0d6efd; /* Default blue for present */
+}
+
+.attendance-cell.present .circle {
+  background-color: #0d6efd;
+}
+
+.attendance-cell.late .circle {
+  background-color: orange;
+}
+
+.attendance-cell.absent .circle {
+  background-color: red;
+}
+
+
+.legend .circle {
+  width: 12px;
+  height: 12px;
+  margin-right: 6px;
+}
+
+
+.attendance-cell {
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.circle {
+  width: 20px;
+  height: 20px;
+  
+  border-radius: 50%;
+}
+
+.table th, .table td {
+  vertical-align: middle;
+  min-width: 60px;
+}

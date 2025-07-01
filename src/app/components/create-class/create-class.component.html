@@ -17,28 +17,38 @@
     </div>
 
     <div class="col-md-6 mb-3">
-      <label class="form-label">Major ID</label>
-      <input type="text" class="form-control" formControlName="majorId" />
+      <label class="form-label">Major</label>
+      <select class="form-select" formControlName="majorId">
+        <option value="">Select Major</option>
+        <option *ngFor="let major of majors" [value]="major.majorCode">{{ major.majorName }}</option>
+      </select>
       <div *ngIf="classForm.get('majorId')?.invalid && classForm.get('majorId')?.touched" class="text-danger mt-1">
-        Major ID is required and max 10 characters.
+        Major is required.
       </div>
     </div>
+
 
     <div class="col-md-6 mb-3">
       <label class="form-label">Academic Year</label>
       <input type="text" class="form-control" formControlName="academicYear" />
-      <div *ngIf="classForm.get('academicYear')?.invalid && classForm.get('academicYear')?.touched" class="text-danger mt-1">
+      <div *ngIf="classForm.get('academicYear')?.invalid && classForm.get('academicYear')?.touched"
+        class="text-danger mt-1">
         Academic Year is required and max 20 characters.
       </div>
     </div>
 
     <div class="col-md-6 mb-3">
       <label class="form-label">Homeroom Teacher</label>
-      <input type="text" class="form-control" formControlName="homeroomTeacher" />
-      <div *ngIf="classForm.get('homeroomTeacher')?.invalid && classForm.get('homeroomTeacher')?.touched" class="text-danger mt-1">
-        Teacher name is required and max 100 characters.
+      <select class="form-select" formControlName="homeroomTeacher">
+        <option value="">Select Lecturer</option>
+        <option *ngFor="let lecturer of lecturers" [value]="lecturer.userId">{{ lecturer.fullName }}</option>
+      </select>
+      <div *ngIf="classForm.get('homeroomTeacher')?.invalid && classForm.get('homeroomTeacher')?.touched"
+        class="text-danger mt-1">
+        Homeroom Teacher is required.
       </div>
     </div>
+
 
     <div class="col-md-6 mb-3">
       <label class="form-label">Class Size</label>

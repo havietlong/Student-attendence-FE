@@ -1,5 +1,5 @@
-<div class="sidebar d-flex flex-column bg-light" [class.expanded]="isExpanded"
-     (mouseenter)="expandSidebar()" (mouseleave)="collapseSidebar()">
+<div class="sidebar d-flex flex-column bg-light" [class.expanded]="isExpanded" (mouseenter)="expandSidebar()"
+  (mouseleave)="collapseSidebar()">
   <!-- Logo -->
   <div class="logo p-3">
     <a routerLink="/dashboard">
@@ -12,20 +12,41 @@
 
     <!-- Admin only -->
     <li class="nav-item" *ngIf="role === 'admin'">
+      <div class="nav-item">
+        <a [routerLink]="['/admin-dashboard']" class="nav-link">
+          <i class="bi bi-speedometer2 fs-4"></i>
+          <span class="label" *ngIf="isExpanded">Trang Chủ</span>
+        </a>
+      </div>
       <div class="nav-link" (click)="toggleSubMenu('students')">
         <i class="bi bi-people fs-4"></i>
         <span class="label" *ngIf="isExpanded">Quản lý tài khoản</span>
         <i class="bi bi-chevron-down ms-auto" *ngIf="isExpanded"></i>
       </div>
       <ul class="nav flex-column submenu" *ngIf="isExpanded && activeSubMenu === 'students'">
-        <li><a [routerLink]="['/addStudent']" class="nav-link ps-5">Thêm giáo viên/ học sinh</a></li>
-        <li><a [routerLink]="['/studentList']" class="nav-link ps-5">Danh sách giáo viên</a></li>
-        <li><a [routerLink]="['/lecturerList']" class="nav-link ps-5">Danh sách học sinh</a></li>
+        <li><a [routerLink]="['/addStudent']" class="nav-link ps-5"><i class="bi bi-person-plus me-2"></i> Thêm giáo
+            viên/ học sinh</a></li>
+        <li><a [routerLink]="['/studentList']" class="nav-link ps-5"><i class="bi bi-person-lines-fill me-2"></i> Danh
+            sách giáo viên</a></li>
+        <li><a [routerLink]="['/lecturerList']" class="nav-link ps-5"><i class="bi bi-journal-text me-2"></i> Danh sách
+            học sinh</a></li>
       </ul>
     </li>
 
     <!-- Admin or Lecturer -->
     <li class="nav-item" *ngIf="role === 'admin' || role === 'lecturer'">
+      <div class="nav-item" *ngIf="role === 'lecturer'">
+        <a [routerLink]="['/lecturer-dashboard']" class="nav-link">
+          <i class="bi bi-speedometer2 fs-4"></i>
+          <span class="label" *ngIf="isExpanded">Trang Chủ</span>
+        </a>
+      </div>
+      <div class="nav-item" *ngIf="role === 'lecturer'">
+        <a [routerLink]="['/lecturer-profile/' + lecturerId]" class="nav-link">
+          <i class="bi bi-person-circle fs-4"></i>
+          <span class="label" *ngIf="isExpanded">Thông tin cá nhân</span>
+        </a>
+      </div>
       <div class="nav-link" (click)="toggleSubMenu('education')">
         <i class="bi bi-book fs-4"></i>
         <span class="label" *ngIf="isExpanded">Quản lý học tập</span>
@@ -34,34 +55,91 @@
       <ul class="nav flex-column submenu" *ngIf="isExpanded && activeSubMenu === 'education'">
         <!-- Admin only -->
         <li *ngIf="role === 'admin'">
-          <a [routerLink]="['/addAcademics']" class="nav-link ps-5">Thêm khóa/ngành/bộ phận</a>
+          <a [routerLink]="['/addAcademics']" class="nav-link ps-5"><i class="bi bi-journal-plus me-2"></i> Thêm
+            khóa/ngành/bộ phận</a>
         </li>
 
-        <!-- Shared (admin + lecturer) -->
-        <li *ngIf="role === 'admin'" ><a [routerLink]="['/manage-course']" class="nav-link ps-5">Lớp Học Phần</a></li>
-        <li *ngIf="role === 'lecturer'" ><a [routerLink]="['/manage-course/'+lecturerId]" class="nav-link ps-5">Lớp Học Phần</a></li>
-        <li><a [routerLink]="['/calendar']" class="nav-link ps-5">Thời Khóa Biểu</a></li>
+        <!-- Shared -->
+        <li *ngIf="role === 'admin'">
+          <a [routerLink]="['/manage-course']" class="nav-link ps-5"><i class="bi bi-easel me-2"></i> Lớp Học Phần</a>
+        </li>
+
+        <li *ngIf="role === 'lecturer'">
+          <a [routerLink]="['/manage-course/' + lecturerId]" class="nav-link ps-5"><i class="bi bi-easel me-2"></i> Lớp
+            Học Phần</a>
+        </li>
+        <li>
+          <a [routerLink]="['/calendar']" class="nav-link ps-5"><i class="bi bi-calendar-week me-2"></i> Thời Khóa
+            Biểu</a>
+        </li>
 
         <!-- Lecturer Features -->
-        <li *ngIf="role === 'lecturer'">
-          <a [routerLink]="['/attendance']" class="nav-link ps-5">Điểm danh sinh viên</a>
+
+        <!-- <li *ngIf="role === 'lecturer'">
+          <a [routerLink]="['/attendance']" class="nav-link ps-5"><i class="bi bi-clipboard-check me-2"></i> Điểm danh sinh viên</a>
         </li>
         <li *ngIf="role === 'lecturer'">
-          <a [routerLink]="['/input-grades']" class="nav-link ps-5">Nhập điểm thành phần & thi</a>
+          <a [routerLink]="['/input-grades']" class="nav-link ps-5"><i class="bi bi-pencil-square me-2"></i> Nhập điểm thành phần & thi</a>
         </li>
         <li *ngIf="role === 'lecturer'">
-          <a [routerLink]="['/grade-report']" class="nav-link ps-5">Báo cáo kết quả học tập</a>
+          <a [routerLink]="['/grade-report']" class="nav-link ps-5"><i class="bi bi-bar-chart-line me-2"></i> Báo cáo kết quả học tập</a>
+        </li> -->
+      </ul>
+    </li>
+
+
+    <!-- Student only -->
+    <li class="nav-item" *ngIf="role === 'student'">
+      <a [routerLink]="['/student-dashboard']" class="nav-link">
+        <i class="bi bi-speedometer2 fs-4"></i>
+        <span class="label" *ngIf="isExpanded">Trang Chủ</span>
+      </a>
+    </li>
+
+    <li class="nav-item" *ngIf="role === 'student'">
+      <a [routerLink]="['/student-profile/' + studentId]" class="nav-link">
+        <i class="bi bi-person-circle fs-4"></i>
+        <span class="label" *ngIf="isExpanded">Thông tin cá nhân</span>
+      </a>
+    </li>
+
+    <li class="nav-item" *ngIf="role === 'student'">
+      <div class="nav-link" (click)="toggleSubMenu('studentAcademics')">
+        <i class="bi bi-journal-text fs-4"></i>
+        <span class="label" *ngIf="isExpanded">Quản Lí Học Tập</span>
+        <i class="bi bi-chevron-down ms-auto" *ngIf="isExpanded"></i>
+      </div>
+      <ul class="nav flex-column submenu" *ngIf="isExpanded && activeSubMenu === 'studentAcademics'">
+        <li>
+          <a [routerLink]="['/grades', studentId]" class="nav-link ps-5">
+            <i class="bi bi-clipboard-check me-2"></i> Điểm số
+          </a>
+        </li>
+        <li>
+          <a [routerLink]="['/manage-course',studentId]" class="nav-link ps-5">
+            <i class="bi bi-easel me-2"></i> Lớp học
+          </a>
+        </li>
+        <li>
+          <a [routerLink]="['/calendar/student/'+studentId]" class="nav-link ps-5">
+            <i class="bi bi-calendar-week me-2"></i> Thời khóa biểu
+          </a>
+        </li>
+        <li>
+          <a [routerLink]="['/course-registration']" class="nav-link ps-5">
+            <i class="bi bi-card-list"></i> Danh sách đăng ký học phần
+          </a>
         </li>
       </ul>
     </li>
 
-    <!-- Student only -->
     <li class="nav-item" *ngIf="role === 'student'">
-      <a [routerLink]="['/student-profile/'+studentId]" class="nav-link">
-        <i class="bi bi-person fs-4"></i>
-        <span class="label" *ngIf="isExpanded">Thông tin cá nhân</span>
+      <a [routerLink]="['/student-report/' + studentId]" class="nav-link">
+        <i class="bi bi-bar-chart-line fs-4"></i>
+        <span class="label" *ngIf="isExpanded">Thống Kê Cá Nhân</span>
       </a>
     </li>
+
 
     <!-- Logout -->
     <li class="nav-item mt-auto">

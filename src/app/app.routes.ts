@@ -13,8 +13,12 @@ import { StudentClassesComponent } from './student-classes/student-classes.compo
 import { LecturerDashboardComponent } from './lecturer-dashboard/lecturer-dashboard.component';
 import { GradeConfigComponent } from './grade-config/grade-config.component';
 import { UserDetailComponent } from './user-detail/user-detail.component';
+import { StudentGradeListComponent } from './student-grade-list/student-grade-list.component';
+import { StudentReportComponent } from './student-report/student-report.component';
+import { AttendanceVisualizationComponent } from './attendance-visualization/attendance-visualization.component';
+import { AdminReportComponent } from './admin-report/admin-report.component';
 
-export const routes: Routes = [    
+export const routes: Routes = [
     { path: 'login', component: LoginComponent },
     { path: 'admin-dashboard', component: DashboardComponent },
     { path: 'studentList/:courseClassId', component: StudentListComponent },
@@ -29,10 +33,15 @@ export const routes: Routes = [
     { path: 'calendar/:courseClassId', component: CalendarViewComponent },
     { path: 'calendar/student/:studentId', component: CalendarViewComponent },
     { path: 'calendar/lecturer/:lecturerId', component: CalendarViewComponent },
-    { path:'course-registered/:studentId',component:CourseRegistratoinComponent},
+    { path: 'course-registered/:studentId', component: CourseRegistratoinComponent },
     { path: 'manage-course/:lecturerId', component: CourseDetailComponent },
-    { path:'lecturer-dashboard', component:LecturerDashboardComponent},
-    { path:'grade-config/:courseClassId', component:GradeConfigComponent},
-    
+    { path: 'lecturer-dashboard', component: LecturerDashboardComponent },
+    { path: 'grade-config/:courseClassId', component: GradeConfigComponent },
+    { path: 'grades/:studentId', component: StudentGradeListComponent },
     { path: 'student-profile/:studentId', component: UserDetailComponent },
+    { path: 'lecturer-profile/:lecturerId', component: UserDetailComponent },
+    { path: 'student-report/:studentId', component: StudentReportComponent },
+    { path: 'admin-report', component: AdminReportComponent },
+    { path: 'attendance-vi', component: AttendanceVisualizationComponent },
+    { path: 'manage-course/:studentId', component: CourseDetailComponent },
 ];

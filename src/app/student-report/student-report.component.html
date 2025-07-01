@@ -1,0 +1,54 @@
+<app-sidebar></app-sidebar>
+
+<div class="container py-4">
+  <div class="card shadow-sm">
+    <div class="card-body">
+
+      <h3 class="text-primary mb-3">Báo cáo học tập cá nhân</h3>
+
+      <div class="row mb-3">
+        <div class="col-md-6">
+          <p><strong>Mã sinh viên:</strong> {{ studentId }}</p>
+          <p><strong>GPA:</strong> {{ gpa }}</p>
+          <p><strong>Xếp loại học lực:</strong> {{ classification }}</p>
+        </div>
+        <div class="col-md-6 text-md-end">
+          <p><strong>Tổng tín chỉ đã hoàn thành:</strong></p>
+          <div class="progress" style="height: 25px;">
+            <div class="progress-bar bg-success" role="progressbar"
+              [style.width]="(creditsCompleted / totalCredits * 100) + '%'">
+              {{ creditsCompleted }} / {{ totalCredits }} tín chỉ
+            </div>            
+          </div>
+          <small class="text-muted">Chỉ tính các môn đã hoàn thành và đạt điểm qua.</small>
+        </div>
+      </div>
+
+      <div class="table-responsive mt-4">
+        <table class="table table-striped table-hover align-middle">
+          <thead class="table-primary">
+            <tr>
+              <th>Mã môn</th>
+              <th>Tên môn</th>
+              <th>Số tín chỉ</th>
+              <th>Điểm trung bình</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let subject of transcript">
+              <td>{{ subject.subjectCode }}</td>
+              <td>{{ subject.subjectName }}</td>
+              <td>{{ subject.credit }}</td>
+              <td>{{ subject.average }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="text-end mt-4">
+        <button class="btn btn-outline-primary" (click)="printTranscript()">🖸 In bảng điểm</button>
+        <button class="btn btn-outline-secondary ms-2" (click)="downloadPdf()">📄 Tải PDF</button>
+      </div>
+    </div>
+  </div>
+</div>

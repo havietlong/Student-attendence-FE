@@ -11,9 +11,15 @@ export interface ScoreType {
 }
 
 export interface SubjectScoreConfig {
-  scoreTypeId: string; // foreign key to ScoreType
-  scoreTypeName?: string; // optional, for display if needed
+  configId?: number;
+  courseClassId: string;
+  scoreTypeId: string;
+  scoreTypeName?: string; // Optional: used in dropdown or display
   weightPercent: number;
+  scoreType?: {
+    scoreTypeId: string;
+    scoreTypeName: string;
+  };
 }
 
 
@@ -116,59 +122,151 @@ export class GradeConfigComponent implements OnInit {
   constructor(private route: ActivatedRoute, private http: HttpClient) { }
 
   ngOnInit(): void {
-  const courseClassId = this.route.snapshot.paramMap.get('courseClassId');
-  if (courseClassId) {
-    this.courseClassId = courseClassId;
+    const courseClassId = this.route.snapshot.paramMap.get('courseClassId');
+    if (courseClassId) {
+      this.courseClassId = courseClassId;
 
-    // ✅ Load score types
-    this.http.get<ScoreType[]>('http://localhost:3000/score-types').subscribe({
-      next: (res) => this.gradeTypes = res,
-      error: () => alert('Không thể tải danh sách loại điểm.')
-    });
+      this.http.get<any>(`http://localhost:3000/course-classes/${this.courseClassId}`)
+        .subscribe({
+          next: (courseClass) => {
+            console.log(courseClass);
 
-    // ✅ Load existing configs
-    this.http.get<SubjectScoreConfig[]>(`http://localhost:3000/subject-score-config/${courseClassId}`)
-      .subscribe({
-        next: (res) => this.gradingConfig = res,
-        error: () => alert('Không thể tải cấu hình điểm.')
+            this.subjectCode = courseClass.subjectCode; // ✅ Now subjectCode is ready for saveConfig
+          },
+          error: () => alert('❌ Không thể tải thông tin lớp học phần')
+        });
+
+
+      // ✅ Load score types
+      this.http.get<ScoreType[]>('http://localhost:3000/score-types').subscribe({
+        next: (res) => this.gradeTypes = res,
+        error: () => alert('Không thể tải danh sách loại điểm.')
       });
+
+      // ✅ Load existing configs
+      this.http.get<SubjectScoreConfig[]>(`http://localhost:3000/subject-score-config/${courseClassId}`)
+        .subscribe({
+          next: (res) => {
+            this.gradingConfig = res.map(item => ({
+              configId: item.configId,
+              courseClassId: item.courseClassId,
+              scoreTypeId: item.scoreType?.scoreTypeId || '',
+              scoreTypeName: item.scoreType?.scoreTypeName || '',
+              weightPercent: item.weightPercent
+            }));
+            console.log(res);
+          },
+          error: () => alert('Không thể tải cấu hình điểm.')
+        });
+    }
   }
-}
+
+
 
 
 
   gradingConfig: SubjectScoreConfig[] = [];
 
   addRow() {
-    this.gradingConfig.push({ scoreTypeId: '', scoreTypeName: '', weightPercent: 0 });
+    this.gradingConfig.push({ scoreTypeId: '', scoreTypeName: '', weightPercent: 0, courseClassId: this.courseClassId });
   }
 
   removeRow(index: number) {
-    this.gradingConfig.splice(index, 1);
+    const row = this.gradingConfig[index];
+
+    // If it's an existing config with a configId → call backend
+    if (row.configId) {
+      if (confirm('Bạn chắc chắn muốn xoá cấu hình điểm này?')) {
+        this.http.delete(`http://localhost:3000/subject-score-config/${row.configId}`)
+          .subscribe({
+            next: () => {
+              this.gradingConfig.splice(index, 1);
+              alert('✅ Xoá thành công!');
+            },
+            error: () => alert('❌ Xoá thất bại')
+          });
+      }
+    } else {
+      // If it's a newly added row (no configId yet), just remove locally
+      this.gradingConfig.splice(index, 1);
+    }
   }
+
 
   getTotalPercentage(): number {
     return this.gradingConfig.reduce((sum, row) => sum + Number(row.weightPercent || 0), 0);
   }
 
   saveConfig() {
+    // 1. Total percent must be 100
     if (this.getTotalPercentage() !== 100) {
-      alert('Tổng tỷ lệ phải bằng 100%!');
+      alert('❌ Tổng tỷ lệ phải bằng 100%!');
       return;
     }
 
-    const payload = this.gradingConfig.map(item => ({
-      subjectCode: this.subjectCode,            // make sure you have this variable
-      scoreTypeId: item.scoreTypeId,            // already selected
-      weightPercent: item.weightPercent          // renamed if needed
-    }));
+    // 2. Prevent duplicate scoreTypeId
+    const seen = new Set();
+    for (let item of this.gradingConfig) {
+      if (seen.has(item.scoreTypeId)) {
+        alert(`❌ Loại điểm "${item.scoreTypeId}" bị trùng.`);
+        return;
+      }
+      seen.add(item.scoreTypeId);
+    }
 
-    this.http.post(`http://localhost:3000/subject-score-config/many`, payload)
-      .subscribe({
-        next: () => alert('✅ Đã lưu cấu hình điểm thành công'),
-        error: () => alert('❌ Không thể lưu cấu hình điểm')
+    // 3. Separate new and existing configs
+    const newConfigs = this.gradingConfig.filter(item => item.configId === undefined);
+    const updatedConfigs = this.gradingConfig.filter(item => item.configId !== undefined);
+
+    // 4. POST new configs
+    if (newConfigs.length > 0) {
+      const postPayload = newConfigs.map(item => ({
+        courseClassId: this.courseClassId,
+        scoreTypeId: item.scoreTypeId,
+        weightPercent: item.weightPercent
+      }));
+
+      this.http.post(`http://localhost:3000/subject-score-config/many`, postPayload).subscribe({
+        next: () => console.log('✅ Thêm cấu hình điểm thành công'),
+        error: () => alert('❌ Không thể thêm cấu hình điểm')
       });
+    }
+
+    // 5. PATCH updated configs
+    for (const item of updatedConfigs) {
+      const payload = {
+ 
+        courseClassId: item.courseClassId,
+        scoreTypeId: item.scoreTypeId,
+        weightPercent: item.weightPercent
+      };
+
+      this.http.patch(`http://localhost:3000/subject-score-config/${item.configId}`, payload).subscribe({
+        next: () => console.log(`✅ Updated configId ${item.configId}`),
+        error: () => alert(`❌ Update failed for configId ${item.configId}`)
+      });
+    }
+
+
+
+    alert('✅ Đã gửi cấu hình điểm thành công!');
   }
 
+
+
+
+
+  deleteConfigRow(configId: number, index: number) {
+    if (!confirm('Bạn chắc chắn muốn xoá cấu hình điểm này?')) return;
+
+    this.http.delete(`http://localhost:3000/subject-score-config/${configId}`)
+      .subscribe({
+        next: () => {
+          this.gradingConfig.splice(index, 1);
+          alert('✅ Xoá thành công!');
+        },
+        error: () => alert('❌ Không thể xoá cấu hình điểm.')
+      });
+  }
 
 }

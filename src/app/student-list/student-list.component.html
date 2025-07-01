@@ -8,8 +8,8 @@
         <div class="card shadow-sm border-0 rounded-4">
           <div class="card-body d-flex flex-column flex-md-row align-items-center justify-content-between gap-3">
             <div class="nav nav-pills flex-grow-1 d-flex justify-content-center justify-content-md-start gap-2">
-              <button class="btn btn-outline-primary" [class.active]="currentView === 'studentlist'"
-                (click)="switchView('studentlist')">
+              <button class="btn btn-outline-primary" *ngIf="role ==='admin'"
+                [class.active]="currentView === 'studentlist'" (click)="switchView('studentlist')">
                 <i class="bi bi-people-fill me-1"></i> Student List
               </button>
               <button class="btn btn-outline-success" [class.active]="currentView === 'attendance'"
@@ -21,27 +21,54 @@
                 <i class="bi bi-pencil-square me-1"></i> Grading
               </button>
             </div>
-            <button class="btn btn-outline-danger" (click)="OnUserLogout()">
-              <i class="bi bi-box-arrow-right me-1"></i> Logout
+            <button class="btn btn-outline-danger" (click)="markClassAsTaught()"
+              [disabled]="classMarkedAsTaught || sentAttendance ">
+              <i class="bi bi-flag-fill me-1"></i> Mark Class Finished
             </button>
           </div>
         </div>
       </div>
 
-
       <!-- Lecturer Info -->
+      <!-- Lecturer & Class Info -->
       <div class="container mb-4">
         <div class="card shadow-sm border-0 rounded-4">
-          <div class="card-body d-flex align-items-center gap-3">
-            <img src="https://i.imgur.com/hczKIze.jpg" alt="Teacher Avatar" class="rounded-circle" width="60"
-              height="60">
-            <div>
-              <h5 class="mb-1">Lecturer View</h5>
-              <p class="mb-0 text-muted">Chấm điểm danh lớp học phần</p>
+          <div class="card-body d-flex justify-content-between flex-wrap gap-3">
+
+            <!-- Lecturer Info -->
+            <div class="d-flex align-items-center gap-3" >
+              <img src="https://i.imgur.com/hczKIze.jpg" alt="Lecturer Avatar" class="rounded-circle" width="60"
+                height="60">
+              <div>
+                <h5 class="mb-1">{{ lecturer?.fullName }}</h5>
+                <p class="mb-0 text-muted">{{ lecturer?.email }}</p>
+              </div>
             </div>
+
+            <!-- Class Info -->
+            <div *ngIf="classSession" class="d-flex flex-column " >
+              <h6 class="mb-1"><i class="bi bi-book me-1"></i> {{ classSession.courseClass?.subject?.subjectName }}</h6>
+              <p class="mb-0 text-muted">
+                <i class="bi bi-hash me-1"></i> Mã lớp: {{ classSession.courseClass?.courseClassId }} <br>
+                <i class="bi bi-geo-alt me-1"></i> Phòng: {{ classSession.classroom }} <br>
+                <i class="bi bi-calendar-event me-1"></i> Ngày: {{ classSession.sessionDate }} <br>
+                <i class="bi bi-clock me-1"></i> Tiết: {{ classSession.startPeriod }} - {{ classSession.startPeriod +
+                classSession.periodCount - 1 }} <br>
+                <i class="bi bi-people-fill me-1"></i> Số lượng tối đa: {{ classSession.courseClass?.maxCapacity }} <br>
+                <i class="bi bi-award me-1"></i> Tín chỉ: {{ classSession.courseClass?.subject?.credit }} <br>
+                <span *ngIf="classSession.isTaught" class="badge bg-success mt-1"><i
+                    class="bi bi-check-circle me-1"></i> Đã dạy</span>
+                <span *ngIf="!classSession.isTaught" class="badge bg-warning mt-1"><i
+                    class="bi bi-exclamation-circle me-1"></i> Chưa dạy</span>
+                <span *ngIf="classSession.isExamDay" class="badge bg-info mt-1"><i
+                    class="bi bi-clipboard-check me-1"></i> Ngày thi</span>
+              </p>
+            </div>
+
           </div>
         </div>
       </div>
+
 
       <!-- Attendance Table -->
       <div class="container">
@@ -52,7 +79,8 @@
                 <th>#</th>
                 <th>Học sinh</th>
                 <th>Email</th>
-                <th>Điểm danh</th>
+                <th *ngIf="currentView === 'attendance'">Điểm danh</th>
+                <th *ngIf="currentView === 'grading'">Chấm điểm</th>
               </tr>
             </thead>
             <tbody>
@@ -72,60 +100,91 @@
                   </div>
                 </td>
                 <td class="align-middle text-center">{{ Student.email }}</td>
-                <td *ngIf="role == 'lecturer' && currentView === 'studentlist'" class="align-middle text-end">
-                  <div class="btn-group" role="group">
-                    <button class="btn btn-sm btn-danger" (click)="OnDeletedStudent(Student)">
-                      <i class="bi bi-trash me-1"></i>Delete
-                    </button>
-                    <button class="btn btn-sm btn-success">
-                      <i class="bi bi-pencil me-1"></i>Edit
-                    </button>
-                    <button class="btn btn-sm btn-primary" [routerLink]="['/viewStudent', Student.id]">
-                      <i class="bi bi-eye me-1"></i>View
-                    </button>
-                  </div>
-                </td>
-                <td class="align-middle text-center">
-                  <div *ngIf="role === 'lecturer' && currentView === 'attendance' "
-                    class="d-flex justify-content-center gap-3">
+                <td
+                  *ngIf="role === 'lecturer' && currentView === 'attendance' || role === 'admin' && currentView === 'attendance'"
+                  class="align-middle text-center">
+                  <div class="d-flex justify-content-center gap-3">
                     <div class="form-check">
                       <input class="form-check-input" type="radio" [name]="'attendance-' + Student.studentId"
-                        [value]="'present'" [disabled]="sentAttendance || !isTodaySession()" [(ngModel)]="attendanceMap[Student.studentId]">
+                        value="present" [disabled]="sentAttendance " [(ngModel)]="attendanceMap[Student.studentId]">
                       <label class="form-check-label">Có mặt</label>
                     </div>
                     <div class="form-check">
                       <input class="form-check-input" type="radio" [name]="'attendance-' + Student.studentId"
-                        [value]="'absent'" [disabled]="sentAttendance || !isTodaySession()" [(ngModel)]="attendanceMap[Student.studentId]">
+                        value="absent" [disabled]="sentAttendance " [(ngModel)]="attendanceMap[Student.studentId]">
                       <label class="form-check-label">Vắng</label>
                     </div>
                     <div class="form-check">
                       <input class="form-check-input" type="radio" [name]="'attendance-' + Student.studentId"
-                        [value]="'late'" [disabled]="sentAttendance || !isTodaySession()" [(ngModel)]="attendanceMap[Student.studentId]">
+                        value="late" [disabled]="sentAttendance " [(ngModel)]="attendanceMap[Student.studentId]">
                       <label class="form-check-label">Muộn</label>
                     </div>
                   </div>
+                </td>
+                <td
+                  *ngIf="role === 'lecturer' && currentView === 'grading' || role === 'admin' && currentView === 'grading'"
+                  class="align-middle text-center">
+                  <ng-container [ngSwitch]="gradingScale">
+                    <!-- 10-point input -->
+                    <input  *ngSwitchCase="'10'" type="number"
+                      class="form-control form-control-sm text-center" [(ngModel)]="gradesMap[Student.studentId]"
+                      placeholder="0-10" min="0" max="10" step="0.1">
+
+                  </ng-container>
                 </td>
               </tr>
             </tbody>
           </table>
 
           <div class="d-flex justify-content-end">
-            <!-- Fix Attendance Button -->
-            <div class="text-end mt-3" *ngIf="sentAttendance && isTodaySession() ">
+            <!-- <div class="text-end mt-3" *ngIf="sentAttendance && isTodaySession()">
               <button class="btn btn-warning" (click)="fixAttendance()">
                 <i class="bi bi-pencil-square me-1"></i> Sửa điểm danh hôm nay
               </button>
             </div>
-            <!-- Submit Button -->
-            <div class="text-end mt-3 ml-2" *ngIf="role === 'lecturer' && isTodaySession()">
+            <div class="text-end mt-3 ms-2" *ngIf="role === 'lecturer' && isTodaySession()">
               <button class="btn btn-success" (click)="submitAttendance()">
                 <i class="bi bi-check-circle me-1"></i> Gửi điểm danh
+              </button>
+            </div> -->
+            <div class="text-end mt-3 ms-2" *ngIf="currentView === 'grading' && role === 'lecturer'">
+              <button  class="btn btn-primary" data-bs-toggle="modal"
+                data-bs-target="#gradeTypeModal">
+                <i class="bi bi-send-check me-1"></i> Gửi điểm
               </button>
             </div>
 
           </div>
 
         </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Grade Type Modal -->
+<div class="modal fade" id="gradeTypeModal" tabindex="-1" aria-labelledby="gradeTypeModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content rounded-4">
+      <div class="modal-header">
+        <h5 class="modal-title" id="gradeTypeModalLabel">Xác định loại điểm</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+      </div>
+      <div class="modal-body">
+        <label for="gradeType" class="form-label">Chọn loại điểm:</label>
+        <select id="gradeType" class="form-select" [(ngModel)]="selectedScoreTypeId">
+          <option value="">-- Chọn loại điểm --</option>
+          <option *ngFor="let type of scoreTypes" [value]="type.scoreTypeId">
+            {{ type.scoreTypeName }}
+          </option>
+        </select>
+
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+        <button class="btn btn-primary" (click)="submitGrades()" data-bs-dismiss="modal">
+          Gửi điểm
+        </button>
       </div>
     </div>
   </div>

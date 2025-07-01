@@ -13,9 +13,15 @@ import { SidebarComponent } from "../components/sidebar/sidebar.component";
 })
 export class CourseDetailComponent {
 
+  role: string = '';
+  student: any = null;
+  lecturerId: string = '';
+  lecturerName: string = '';
+  studentName: string = '';
+  studentId: string = '';
   subjectCode: string = '';
-  filteredClasses: any[] = [];
   subjectName: string = '';
+  filteredClasses: any[] = [];
 
   constructor(
     private route: ActivatedRoute,
@@ -28,7 +34,7 @@ export class CourseDetailComponent {
   }
 
   goToGradeConfig(courseClassId: string) {
-    this.router.navigate(['/grade-config',courseClassId]);
+    this.router.navigate(['/grade-config', courseClassId]);
   }
 
   goToStudentListPage(courseClassId: string) {
@@ -36,24 +42,52 @@ export class CourseDetailComponent {
   }
 
   ngOnInit(): void {
-    const subjectCode = this.route.snapshot.paramMap.get('subjectCode');
-    console.log('Subject Code:', subjectCode);
-    console.log(subjectCode);
-
-    if (subjectCode) {
-      this.loadSubjectDetail(subjectCode);
-      this.subjectCode = subjectCode;
+    // Get role from localStorage
+    if (typeof window !== 'undefined') {
+      this.role = localStorage.getItem('role') || '';
     }
 
-    const lecturerId = this.route.snapshot.paramMap.get('lecturerId');
-    console.log(lecturerId);
-
-    if (lecturerId) {
-      this.lecturerId = lecturerId;
-      this.loadLecturerClasses(lecturerId);
+    // Load based on role
+    if (this.role === 'student') {
+      const studentData = localStorage.getItem('student');
+      if (studentData) {
+        
+        
+        this.student = JSON.parse(studentData);
+        this.studentId = this.student.studentId;
+        this.studentName = this.student.fullName;        
+        this.loadStudentCourses(this.studentId);
+      }
+    } else if (this.role === 'lecturer') {
+      const lecturerId = this.route.snapshot.paramMap.get('lecturerId');
+      if (lecturerId) {
+        this.lecturerId = lecturerId;
+        this.loadLecturerClasses(this.lecturerId);
+      }
     } else {
-      console.warn('Missing lecturerId in URL');
+      // Guest or admin viewing subject detail
+      const subjectCode = this.route.snapshot.paramMap.get('subjectCode');
+      if (subjectCode) {
+        this.subjectCode = subjectCode;
+        this.loadSubjectDetail(subjectCode);
+      }
     }
+  }
+
+  loadStudentCourses(studentId: string) {
+    const url = `http://localhost:3000/course-classes/student/${studentId}`;
+    this.http.get<any[]>(url).subscribe({
+      next: (data) => {
+        this.filteredClasses = data.map(cls => ({
+          ...cls,
+          subjectName: cls.subject?.subjectName ?? '---',
+          lecturerName: cls.lecturer?.fullName ?? '---',
+        }));
+
+        this.studentName = data[0]?.student?.fullName ?? '---';
+      },
+      error: (err) => console.error('❌ Failed to load student courses:', err)
+    });
   }
 
   loadLecturerClasses(lecturerId: string) {
@@ -99,8 +133,22 @@ export class CourseDetailComponent {
     this.router.navigate(['/manage-courses']);
   }
 
-  lecturerId: string = '';
-  lecturerName: string = '';
   classesTaught: any[] = [];
+
+  withdrawCourse(courseClassId: string) {
+    if (confirm('Bạn có chắc muốn hủy đăng ký lớp này?')) {
+        this.http.delete(`http://localhost:3000/course-classes/withdraw/${courseClassId}/${this.studentId}`)
+            .subscribe({
+                next: () => {
+                    alert('Hủy đăng ký thành công!');
+                    this.filteredClasses = this.filteredClasses.filter(cls => cls.courseClassId !== courseClassId);
+                },
+                error: (err) => {
+                    console.error('❌ Hủy đăng ký thất bại:', err);
+                    alert('Hủy đăng ký thất bại!');
+                }
+            });
+    }
+}
 
 }

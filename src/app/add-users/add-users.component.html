@@ -2,7 +2,7 @@
 <div class="container-fluid">
   <div class="row min-vh-100 ml-5">
     <!-- Sidebar -->
-   
+
 
     <!-- Main Content -->
     <div class="col p-4">
@@ -41,11 +41,9 @@
                 <div class="mb-3">
                   <label class="form-label d-block">Gender</label>
                   <div class="btn-group">
-                    <button type="button" class="btn"
-                      [ngClass]="gender === 'M' ? 'btn-primary' : 'btn-outline-primary'"
+                    <button type="button" class="btn" [ngClass]="gender === 'M' ? 'btn-primary' : 'btn-outline-primary'"
                       (click)="gender = 'M'">Male</button>
-                    <button type="button" class="btn"
-                      [ngClass]="gender === 'F' ? 'btn-danger' : 'btn-outline-danger'"
+                    <button type="button" class="btn" [ngClass]="gender === 'F' ? 'btn-danger' : 'btn-outline-danger'"
                       (click)="gender = 'F'">Female</button>
                   </div>
                 </div>
@@ -80,22 +78,51 @@
 
                 <!-- Conditional Inputs -->
                 <div *ngIf="role === 'student'" class="mb-3">
-                  <label class="form-label">Mã lớp</label>
-                  <input type="text" class="form-control" name="ma_lop" [(ngModel)]="ma_lop" required>
+                  <select class="form-select" name="ma_lop" [(ngModel)]="ma_lop" required>
+                    <option value="">-- Select Class --</option>
+                    <option *ngFor="let classItem of classList" [value]="classItem.classId">
+                      {{ classItem.className }} ({{ classItem.classId }})
+                    </option>
+                  </select>
+
                 </div>
 
                 <div *ngIf="role === 'lecturer'">
                   <div class="mb-3">
                     <label class="form-label">Degree</label>
-                    <input type="text" class="form-control" name="degree" [(ngModel)]="degree" required>
+                    <select class="form-select" name="degree" [(ngModel)]="degree" required>
+                      <option value="" disabled selected>Select degree</option>
+                      <option *ngFor="let deg of degreeOptions" [value]="deg">{{ deg }}</option>
+                    </select>
                   </div>
+
+                  <!-- Specialization Input for Lecturer -->
                   <div class="mb-3">
-                    <label class="form-label">Specialization</label>
-                    <input type="text" class="form-control" name="specialization" [(ngModel)]="specialization" required>
+                    <label class="form-label">Specializations (Click to select)</label>
+                    <div class="d-flex flex-wrap gap-2">
+                      <button type="button" class="btn btn-outline-primary d-flex align-items-center"
+                        *ngFor="let major of majors" [ngClass]="{ 'active': isSelected(major.majorName) }"
+                        (click)="toggleSpecialization(major.majorName)">
+                        <span class="me-2">{{ major.majorName }}</span>
+                        <!-- <span *ngIf="isSelected(major.majorName)" class="text-success fw-bold">&#10003;</span> -->
+                      </button>
+                    </div>
                   </div>
+
+                  <p *ngIf="specialization && specialization.length > 0" class="mt-2">Selected Specializations: {{
+                    specialization.join(', ') }}</p>
+
+
+                  <!-- Department -->
                   <div class="mb-3">
-                    <label class="form-label">Department Code</label>
-                    <input type="text" class="form-control" name="departmentCode" [(ngModel)]="departmentCode" required>
+                    <label class="form-label">Department</label>
+                    <select class="form-select" name="departmentCode" [(ngModel)]="selectedDepartment"
+                      (change)="onDepartmentChange()" required>
+                      <option value="" disabled selected>Select department</option>
+                      <option *ngFor="let dept of departments" [value]="dept.departmentCode">
+                        {{ dept.departmentName }} ({{ dept.departmentCode }})
+                      </option>
+                    </select>
                   </div>
                 </div>
 
@@ -120,4 +147,17 @@
       </div>
     </div>
   </div>
+</div>
+
+<div *ngIf="isLoading" class="loading-overlay">
+  <div class="spinner"></div>
+  <p>Creating account, please wait...</p>
+</div>
+
+<div *ngIf="isSuccess" class="success-overlay">
+  <div class="checkmark-circle">
+    <div class="background"></div>
+    <div class="checkmark">&#10003;</div>
+  </div>
+  <p>User created and email sent successfully!</p>
 </div>

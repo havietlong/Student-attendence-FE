@@ -6,27 +6,38 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 
 @Component({
   selector: 'app-create-class',
-  standalone:true,
-  imports:[ReactiveFormsModule,CommonModule],
+  standalone: true,
+  imports: [ReactiveFormsModule, CommonModule],
   templateUrl: './create-class.component.html',
 })
 export class CreateClassComponent implements OnInit {
   @Output() fieldFocus = new EventEmitter<string>();
   classForm!: FormGroup;
-
+  majors: any[] = [];
+  lecturers: any[] = [];
   constructor(
     private fb: FormBuilder,
-private http: HttpClient
-  ) {}
+    private http: HttpClient
+  ) { }
 
   ngOnInit(): void {
     this.classForm = this.fb.group({
       classId: ['', [Validators.required, Validators.maxLength(10)]],
       className: ['', [Validators.required, Validators.maxLength(50)]],
-      majorId: ['', [Validators.required, Validators.maxLength(10)]],
+      majorId: ['', [Validators.required]],
       academicYear: ['', [Validators.required, Validators.maxLength(20)]],
-      homeroomTeacher: ['', [Validators.required, Validators.maxLength(100)]],
+      homeroomTeacher: ['', [Validators.required]],
       classSize: [null, [Validators.required, Validators.min(1)]],
+    });
+
+    // Fetch majors
+    this.http.get<any[]>('http://localhost:3000/majors').subscribe(res => {
+      this.majors = res;
+    });
+
+    // Fetch lecturers
+    this.http.get<any[]>('http://localhost:3000/lecturers').subscribe(res => {
+      this.lecturers = res;
     });
   }
 
@@ -44,4 +55,6 @@ private http: HttpClient
       console.error('Form is invalid');
     }
   }
+
+
 }

@@ -37,7 +37,7 @@ export class LoginComponent implements OnInit {
         localStorage.setItem('role', role);
         // Step 1: Fetch student by userId
         if(role === 'student'){
-        this.http.get<any>(`http://localhost:3000/students/${userID}`).subscribe({
+        this.http.get<any>(`http://localhost:3000/students/user/${userID}`).subscribe({
           next: (res) => {
             const student = JSON.stringify(res);
               localStorage.setItem('student', student);

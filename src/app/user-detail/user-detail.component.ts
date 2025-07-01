@@ -50,7 +50,7 @@ export class UserDetailComponent implements OnInit {
   }
 
   loadStudentData(userId: string) {
-    this.http.get(`http://localhost:3000/students/${userId}`).subscribe({
+    this.http.get(`http://localhost:3000/students/user/${userId}`).subscribe({
       next: (student: any) => this.student = student,
       error: () => console.warn('No student data found for this user.')
     });

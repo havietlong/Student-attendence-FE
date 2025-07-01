@@ -55,6 +55,7 @@ export class CalendarViewComponent {
   contextMenuDate: Date | null = null;
   selectedCourseClassId: string = '';
   selectedSession: any;
+  role!: string;
 
 
 
@@ -109,7 +110,7 @@ export class CalendarViewComponent {
   }
 
 
-  goToStudentList(courseClassId: string, date: Date, classSessionId: any) {
+  goToStudentList(courseClassId: string, date: Date, classSessionId: any, isExam: boolean, scoreTypeId: string) {
     console.log(classSessionId);
 
     const formattedDate = formatDate(date, 'yyyy-MM-dd', 'en-US');
@@ -118,10 +119,13 @@ export class CalendarViewComponent {
       queryParams: {
         courseClassId,
         date: formattedDate,
-        classSessionId
+        classSessionId,
+        isExam,
+        scoreTypeId
       }
     });
   }
+
 
 
 
@@ -162,32 +166,61 @@ export class CalendarViewComponent {
 
 
   setExamDayByDate(date: Date) {
-    const targetDateStr = this.datePipe.transform(date, 'yyyy-MM-dd');
+    const sessionCandidates = this.originalEvents.filter(s => {
+      const sDate = new Date(s.start);
+      return sDate.getFullYear() === date.getFullYear() &&
+        sDate.getMonth() === date.getMonth() &&
+        sDate.getDate() === date.getDate();
+    });
 
-    // Use your existing logic to find the right session(s)
-    const session = this.originalEvents.find(
-      s => this.datePipe.transform(s.start, 'yyyy-MM-dd') === targetDateStr
-    );
-
-    console.log(session);
-
-
-    if (!session) {
+    if (sessionCandidates.length === 0) {
       alert('❌ No session found on this date.');
       return;
     }
 
+    if (sessionCandidates.length === 1) {
+      this.updateExamStatus(sessionCandidates[0]);
+    } else {
+      const sessionTitles = sessionCandidates.map((s, i) =>
+        `${i + 1}: ${s.title}`
+      ).join('\n');
+
+      const choice = prompt(`📚 Có nhiều buổi học. Chọn số để đánh dấu:\n${sessionTitles}`);
+
+      const index = parseInt(choice ?? '', 10);
+      if (!index || index < 1 || index > sessionCandidates.length) {
+        alert('⚠️ Lựa chọn không hợp lệ.');
+        return;
+      }
+
+      this.updateExamStatus(sessionCandidates[index - 1]);
+    }
+  }
+
+  updateExamStatus(session: any) {
+    const examType = prompt('🔖 Loại kiểm tra (GK, CK hoặc DA)?', 'GK');
+
+    if (!examType || !['GK', 'CK', 'DA'].includes(examType.toUpperCase())) {
+      alert('⚠️ Vui lòng nhập GK hoặc CK.');
+      return;
+    }
+
     const url = `http://localhost:3000/class-session/${session.classSessionId}`;
-    this.http.patch(url, { isExamDay: true }).subscribe({
+    this.http.patch(url, {
+      isExamDay: true,
+      scoreTypeId: examType.toUpperCase()
+    }).subscribe({
       next: () => {
-        alert('✅ Exam day has been set for this session!');
+        alert(`✅ Đã đánh dấu buổi học là ngày kiểm tra ${examType.toUpperCase()}`);
         this.refresh.next();
       },
       error: () => {
-        alert('❌ Failed to mark session as exam day.');
+        alert('❌ Đánh dấu thất bại.');
       }
     });
   }
+
+
 
 
 
@@ -239,6 +272,11 @@ export class CalendarViewComponent {
     if (typeof window !== 'undefined') {
       const lecturerData = localStorage.getItem('lecturer');
       const studentData = localStorage.getItem('student');
+
+      const role = localStorage.getItem('role');
+      if (role) {
+        this.role = role;
+      }
 
       const courseClassId = this.route.snapshot.paramMap.get('courseClassId');
 
@@ -303,6 +341,12 @@ export class CalendarViewComponent {
           const events = data.map(item => this.mapSessionToEvent(item));
           allEvents.push(...events);
           this.events = allEvents;
+          this.originalEvents = allEvents;
+          this.courseClassIds = [...new Set(allEvents.map(e => e.courseClassId))];
+          console.log(this.courseClassIds);
+
+          this.filterEvents();
+          this.refresh.next();
           this.refresh.next();
         });
       });
@@ -342,14 +386,26 @@ export class CalendarViewComponent {
 
     const endDate = new Date(baseDate);
     endDate.setHours(endH, endM, 0, 0);
+    const examType = item.scoreTypeId; // e.g. "GK", "CK"
+    const isExam = item.isExamDay === true;
+    const examColor = item.scoreTypeId === 'GK'
+      ? { primary: '#ffcc00', secondary: '#fff8e1' } // Yellow for GK
+      : item.scoreTypeId === 'CK'
+        ? { primary: '#dc3545', secondary: '#f8d7da' } // Red for CK
+        : { primary: '#0d6efd', secondary: '#e7f1ff' }; // Default blue
 
     return {
       start: startDate,
       end: endDate,
-      title: `${item.courseClass?.subject?.subjectName ?? 'Unknown Subject'} (${item.courseClass?.courseClassId ?? '---'}) - Phòng ${item.classroom} - Tiết ${startPeriod} ➜ ${endPeriod}`,
+      title: `${item.courseClass?.subject?.subjectName ?? 'Unknown'} (${item.courseClass?.courseClassId ?? '---'}) 
+            - Phòng ${item.classroom} - Tiết ${startPeriod} ➜ ${endPeriod}
+            ${isExam ? '📘 K.Tra ' + (examType ?? '') : ''}`,
       allDay: false,
-      courseClassId: item.courseClassId,
-      classSessionId: item.id
+      courseClassId: item.courseClass?.courseClassId ?? '',
+      classSessionId: item.id,
+      color: isExam ? examColor : undefined,
+      isExam: isExam, // ✅ add this
+      scoreTypeId: examType
     };
   }
 
@@ -395,62 +451,22 @@ export class CalendarViewComponent {
   }
 
   fetchEvents(courseClassId?: string) {
-    let url = 'http://localhost:3000/class-session';
+  let url = 'http://localhost:3000/class-session';
 
-    if (courseClassId) {
-      url = `http://localhost:3000/class-session/by-course-class/` + courseClassId; // assuming you support filtering server-side
-    }
-
-    this.http.get<any[]>(url).subscribe(data => {
-      const processedEvents = data.map(item => {
-        const baseDate = new Date(item.sessionDate);
-        const startPeriod = item.startPeriod;
-        const periodCount = item.periodCount;
-
-        const periods: { [key: number]: { start: string; end: string } } = {
-          1: { start: '07:00', end: '07:45' },
-          2: { start: '07:50', end: '08:35' },
-          3: { start: '08:40', end: '09:25' },
-          4: { start: '09:35', end: '10:20' },
-          5: { start: '10:25', end: '11:10' },
-          6: { start: '11:15', end: '12:00' },
-          7: { start: '12:45', end: '13:30' },
-          8: { start: '13:35', end: '14:20' },
-          9: { start: '14:25', end: '15:10' },
-          10: { start: '15:20', end: '16:05' },
-          11: { start: '16:10', end: '16:55' },
-          12: { start: '17:00', end: '17:45' },
-        };
-
-        const start = periods[startPeriod].start;
-        const endPeriod = startPeriod + periodCount - 1;
-        const end = periods[endPeriod]?.end || periods[12].end;
-
-        const [startH, startM] = start.split(':').map(Number);
-        const [endH, endM] = end.split(':').map(Number);
-
-        const startDate = new Date(baseDate);
-        startDate.setHours(startH, startM, 0, 0);
-
-        const endDate = new Date(baseDate);
-        endDate.setHours(endH, endM, 0, 0);
-
-        return {
-          start: startDate,
-          end: endDate,
-          title: `${item.courseClass?.subject?.subjectName ?? 'Unknown Subject'} (${item.courseClass?.courseClassId ?? '---'}) - Phòng ${item.classroom} - Tiết ${startPeriod} ➜ ${endPeriod}`,
-          allDay: false,
-          courseClassId: item.courseClass?.courseClassId ?? '',
-          classSessionId: item.id
-        };
-      });
-
-      this.originalEvents = processedEvents;
-      this.courseClassIds = [...new Set(processedEvents.map(e => e.courseClassId))];
-      this.filterEvents();
-    });
-
+  if (courseClassId) {
+    url = `http://localhost:3000/class-session/by-course-class/` + courseClassId;
   }
+
+  this.http.get<any[]>(url).subscribe(data => {
+    const processedEvents = data.map(item => this.mapSessionToEvent(item)); // ✅ Use the same mapping function
+
+    this.originalEvents = processedEvents;
+    this.courseClassIds = [...new Set(processedEvents.map(e => e.courseClassId))];
+    this.filterEvents();
+    this.refresh.next(); // ✅ Make sure calendar updates
+  });
+}
+
 
   filterEvents() {
     if (!this.selectedCourseClassId) {

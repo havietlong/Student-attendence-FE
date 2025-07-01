@@ -17,11 +17,11 @@
         <div class="col-md-4">
             <div class="card">
                 <div class="card-body d-flex align-items-center">
-                    <img [src]="student.avatarUrl" alt="Avatar" class="rounded-circle me-3" width="80" height="80">
+                    <img [src]="userImageLink" alt="Avatar" class="rounded-circle me-3" width="80" height="80">
                     <div>
                         <h5 class="card-title">{{ student.fullName }}</h5>
                         <p class="card-text mb-1">Lớp: {{ student.class }}</p>
-                        <p class="card-text mb-1">GPA: <strong>{{ student.gpa }}</strong></p>
+                        <!-- <p class="card-text mb-1">GPA: <strong>{{ student.gpa }}</strong></p>
                         <div class="mb-2">
                             <div class="progress" style="height: 8px">
                                 <div class="progress-bar bg-success" role="progressbar"
@@ -29,8 +29,9 @@
                                 </div>
                             </div>
                         </div>
-                        <p class="card-text">Tổng tín chỉ: {{ student.totalCredits }}</p>
-                        <button class="btn btn-outline-primary btn-sm mt-2">Thông tin cá nhân</button>
+                        <p class="card-text">Tổng tín chỉ: {{ student.totalCredits }}</p> -->
+                        <button [routerLink]="['/student-profile/'+studentId]"
+                            class="btn btn-outline-primary btn-sm mt-2">Thông tin cá nhân</button>
                     </div>
                 </div>
             </div>
@@ -41,34 +42,60 @@
             <div class="card">
                 <div class="card-body">
                     <h5 class="card-title">Lịch học hôm nay</h5>
-                    <ul class="list-group list-group-flush">
+
+                    <ul class="list-group list-group-flush" *ngIf="todayClasses.length > 0; else noClasses">
                         <li class="list-group-item" *ngFor="let cls of todayClasses">
                             <strong>{{ cls.subject }}</strong><br>
                             <small>{{ cls.time }} - Phòng {{ cls.room }}</small>
                         </li>
                     </ul>
-                    <button (click)="navigateToStudentCalendat()" class="btn btn-outline-secondary btn-sm mt-3">Xem tất cả lịch học</button>
-                </div>
 
+                    <!-- 👇 Fallback when no classes -->
+                    <ng-template #noClasses>
+                        <div class="text-center text-muted my-4">
+                            <i class="bi bi-calendar-x fs-1"></i>
+                            <p class="mt-2 mb-0">Bạn không có lớp nào hôm nay.</p>
+                            <small>Hãy kiểm tra lịch học cho các ngày tiếp theo.</small>
+                        </div>
+                    </ng-template>
+
+                    <button (click)="navigateToStudentCalendat()" class="btn btn-outline-secondary btn-sm mt-3">
+                        Xem tất cả lịch học
+                    </button>
+                </div>
             </div>
+
 
         </div>
 
+        <!-- Upcoming Exams -->
         <!-- Upcoming Exams -->
         <div class="col-md-4">
             <div class="card">
                 <div class="card-body">
                     <h5 class="card-title">Lịch thi sắp tới</h5>
-                    <ul class="list-group list-group-flush">
+
+                    <ul class="list-group list-group-flush" *ngIf="upcomingExams.length > 0; else noExams">
                         <li class="list-group-item" *ngFor="let exam of upcomingExams">
                             <strong>{{ exam.subject }}</strong><br>
-                            <small>Ngày {{ exam.date }} - Phòng {{ exam.room }}</small>
+                            <small>Ngày {{ exam.date }} - Phòng {{ exam.room }} - Giờ {{ exam.time }}</small>
                         </li>
                     </ul>
-                    <button class="btn btn-outline-danger btn-sm mt-3">Xem lịch thi</button>
+
+                    <!-- 👇 Fallback when no exams -->
+                    <ng-template #noExams>
+                        <div class="text-center text-muted my-4">
+                            <i class="bi bi-calendar2-event fs-1"></i>
+                            <p class="mt-2 mb-0">Chưa có lịch thi sắp tới.</p>
+                            <small>Hãy kiểm tra lại sau hoặc liên hệ giảng viên.</small>
+                        </div>
+                    </ng-template>
+
+                    <button (click)="navigateToStudentCalendat()" class="btn btn-outline-danger btn-sm mt-3">Xem lịch thi</button>
                 </div>
             </div>
         </div>
+
     </div>
 
     <!-- GPA Trend Chart Placeholder -->
@@ -87,25 +114,12 @@
         <!-- Course Registration -->
         <div class="col-md-6">
             <!-- Attendance Summary -->
-            <div class="card h-100">
-                <div class="card-body">
-                    <h5 class="card-title">Tình hình điểm danh</h5>
-                    <ul class="list-group list-group-flush small">
-                        <li class="list-group-item d-flex justify-content-between align-items-center"
-                            *ngFor="let item of attendanceRecords">
-                            <span>{{ item.subject }}</span>
-                            <span class="badge" [ngClass]="{
-          'bg-success': item.rate >= 85,
-          'bg-warning text-dark': item.rate < 85 && item.rate >= 65,
-          'bg-danger': item.rate < 65
-        }">
-                                {{ item.rate }}%
-                            </span>
-                        </li>
-                    </ul>
-                    <a routerLink="/attendance" class="btn btn-outline-primary btn-sm mt-3 w-100">Xem chi tiết điểm
+            <div class="card ">
+                
+                    <app-attendance-visualization [attendanceRecords]="attendanceRecords"></app-attendance-visualization>
+                    <!-- <a routerLink="/attendance" class="btn btn-outline-primary btn-sm mt-3 ">Xem chi tiết điểm
                         danh</a>
-                </div>
+              -->
             </div>
 
 

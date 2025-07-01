@@ -3,27 +3,41 @@
 <div class="container py-4">
     <div class="card shadow-sm">
         <div class="card-body">
-            <div class="" *ngIf="!lecturerId">
+            <!-- Student View -->
+            <div *ngIf="role === 'student'; else checkLecturer">
+                <h3 class="card-title text-primary">
+                    Khóa học đã đăng ký: ({{ studentId }})
+                </h3>
+                <p class="text-muted mb-4">
+                    Tổng số lớp đã đăng ký: {{ filteredClasses.length }}
+                </p>
+            </div>
+
+            <!-- Lecturer View -->
+            <ng-template #checkLecturer>
+                <div *ngIf="role === 'lecturer'; else defaultView">
+                    <h3 class="card-title text-primary">
+                        Danh sách lớp giảng dạy: {{ lecturerName }} ({{ lecturerId }})
+                    </h3>
+                    <p class="text-muted mb-4">
+                        Tổng số lớp: {{ filteredClasses.length }}
+                    </p>
+                </div>
+            </ng-template>
+
+            <!-- Subject View -->
+            <ng-template #defaultView>
                 <h3 class="card-title text-primary">
                     Chi tiết học phần: {{ subjectName }} ({{ subjectCode }})
                 </h3>
-
                 <p class="text-muted mb-4">
                     Tổng số lớp: {{ filteredClasses.length }}
                 </p>
-            </div>
-            <div class="" *ngIf="lecturerId">
-                <h3 class="card-title text-primary">
-                    Danh sách lớp giảng dạy: {{ lecturerName }} ({{ lecturerId }})
-                </h3>
+            </ng-template>
 
-                <p class="text-muted mb-4">
-                    Tổng số lớp: {{ filteredClasses.length }}
-                </p>
-            </div>
-
+            <!-- Table -->
             <div class="table-responsive">
-                <table class="table  table-striped align-middle">
+                <table class="table table-striped align-middle">
                     <thead class="table-primary">
                         <tr>
                             <th>Mã môn học</th>
@@ -52,28 +66,43 @@
                             <td>{{ cls.endDate | date: 'dd/MM/yyyy' }}</td>
                             <td>{{ cls.maxCapacity }}</td>
                             <td>
-                                <button class="btn btn-sm btn-outline-primary me-1 mb-2"
-                                    (click)="goToClassPage(cls.courseClassId)">
-                                    Xem lịch học
-                                </button>
+                                <div class="d-flex flex-column">
 
-                                <button class="btn btn-sm btn-outline-primary mb-2"
-                                    (click)="goToStudentListPage(cls.courseClassId)">
-                                    Danh sách học sinh
-                                </button>
+                                    <!-- View Schedule: Show for everyone -->
+                                    <button class="btn btn-sm btn-outline-primary"
+                                        (click)="goToClassPage(cls.courseClassId)">
+                                        Xem lịch học
+                                    </button>
 
-                                <button class="btn btn-sm btn-outline-warning mb-2"
-                                    (click)="goToGradeConfig(cls.courseClassId)">
-                                    Cấu hình điểm lớp học
-                                </button>
+                                    <!-- Lecturer Actions -->
+                                    <button *ngIf="role === 'lecturer' || role === 'admin'"
+                                        class="btn btn-sm btn-outline-primary"
+                                        (click)="goToStudentListPage(cls.courseClassId)">
+                                        Danh sách học sinh
+                                    </button>
+
+                                    <button *ngIf="role === 'lecturer' || role === 'admin'"
+                                        class="btn btn-sm btn-outline-warning"
+                                        (click)="goToGradeConfig(cls.courseClassId)">
+                                        Cấu hình điểm lớp học
+                                    </button>
+
+                                    <!-- Student Actions -->
+                                    <button *ngIf="role === 'student'" class="btn btn-sm btn-outline-danger"
+                                        (click)="withdrawCourse(cls.courseClassId)">
+                                        Hủy đăng ký
+                                    </button>
+
+                                </div>
                             </td>
+
                         </tr>
                     </tbody>
                 </table>
             </div>
 
             <div *ngIf="filteredClasses.length === 0" class="alert alert-info mt-4">
-                Không có lớp học nào cho học phần này.
+                Không có lớp học nào.
             </div>
         </div>
     </div>

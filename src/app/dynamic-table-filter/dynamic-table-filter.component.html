@@ -1,0 +1,42 @@
+<div class="filter-container mb-3">
+    <!-- Attribute Selector as Pill -->
+    <div class="attribute-selector-pill d-flex align-items-center mb-2" style="width: fit-content;" *ngIf="!showAttributeSelector">
+        <button class="btn btn-sm btn-outline-primary pill-button" (click)="showAttributeSelector = true">
+            + Thêm bộ lọc
+        </button>
+    </div>
+
+    <!-- Attribute Dropdown appears on click -->
+    <div class="d-flex align-items-center mb-2" *ngIf="showAttributeSelector">
+        <select class="form-select form-select-sm me-2" [(ngModel)]="selectedAttribute">
+            <option value="" disabled selected>-- Chọn thuộc tính --</option>
+            <option *ngFor="let attr of filterConfig" [value]="attr.key"
+                [disabled]="activeAttributes.includes(attr.key)">
+                {{ attr.label }}
+            </option>
+        </select>
+        <button class="btn btn-sm btn-primary me-2" (click)="addAttribute()" [disabled]="!selectedAttribute">Thêm</button>
+        <button class="btn btn-sm btn-outline-secondary" (click)="cancelAdd()">Hủy</button>
+    </div>
+
+    <!-- Active Filters as Pills -->
+    <div class="d-flex flex-wrap gap-2">
+        <div *ngFor="let attr of activeAttributes" class="filter-pill d-flex align-items-center">
+            <span class="pill-label me-2">{{ getLabel(attr) }}</span>
+
+            <select class="form-select form-select-sm me-2" [(ngModel)]="selectedFilters[attr]" (change)="onFilterChange()">
+                <option value="">Tất cả</option>
+                <option *ngFor="let option of getFilterOptions(attr)" [value]="option">
+                    {{ option }}
+                </option>
+            </select>
+
+            <button class="btn btn-sm btn-outline-danger" (click)="removeAttribute(attr)">✕</button>
+        </div>
+    </div>
+</div>
+
+<!-- Clear All Button -->
+<button class="btn btn-outline-secondary mt-3" (click)="clearAll()" *ngIf="activeAttributes.length > 0">
+    Xóa tất cả bộ lọc
+</button>
