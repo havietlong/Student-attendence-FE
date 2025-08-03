@@ -78,6 +78,8 @@
 
                 <!-- Conditional Inputs -->
                 <div *ngIf="role === 'student'" class="mb-3">
+                  <label class="form-label">Upload Students via Excel</label>
+                  <input type="file" class="form-control" accept=".xlsx, .xls" (change)="onExcelUpload($event)">
                   <select class="form-select" name="ma_lop" [(ngModel)]="ma_lop" required>
                     <option value="">-- Select Class --</option>
                     <option *ngFor="let classItem of classList" [value]="classItem.classId">

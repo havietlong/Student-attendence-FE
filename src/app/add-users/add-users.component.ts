@@ -5,6 +5,14 @@ import { HttpClient } from '@angular/common/http'; // ✅ import this
 import { AuthService } from '../services/auth.service';
 import { UserService } from '../services/users.service';
 import { SidebarComponent } from '../components/sidebar/sidebar.component';
+import * as XLSX from 'xlsx';
+
+interface UserExcelInput {
+  email: string;
+  fullName: string;
+  role: 'student' | 'lecturer'; // or just string if not strict
+  password: string;
+}
 
 @Component({
   selector: 'app-add-users',
@@ -13,6 +21,7 @@ import { SidebarComponent } from '../components/sidebar/sidebar.component';
   templateUrl: './add-users.component.html',
   styleUrl: './add-users.component.css',
 })
+
 export class AddUsersComponent {
   departments: any[] = [];
   majors: any[] = [];
@@ -37,6 +46,54 @@ export class AddUsersComponent {
       console.log(this.classList);
     });
   }
+
+  onExcelUpload(event: any) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e: any) => {
+      const data = new Uint8Array(e.target.result);
+      const workbook = XLSX.read(data, { type: 'array' });
+
+      const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+
+      // ✅ Here's where you use the correct variable
+      const usersFromExcel: UserExcelInput[] = XLSX.utils.sheet_to_json(worksheet);
+
+      // ✅ Validate structure
+      if (
+        !Array.isArray(usersFromExcel) ||
+        !usersFromExcel[0]?.email ||
+        !usersFromExcel[0]?.fullName ||
+        !usersFromExcel[0]?.role
+      ) {
+        console.error('Invalid or empty file.');
+        return;
+      }
+
+      // ✅ Normalize users (generate password if missing)
+
+
+      this.isLoading = true;
+
+      this.http.post('http://localhost:3000/users/bulk', usersFromExcel).subscribe({
+        next: () => {
+          alert('✅ Users imported successfully!');
+          this.isLoading = false;
+        },
+        error: (err) => {
+          console.error('❌ Bulk import failed:', err);
+          this.isLoading = false;
+          alert('Bulk import failed. Check the console for more details.');
+        }
+      });
+    };
+
+    reader.readAsArrayBuffer(file);
+  }
+
+
 
   onDepartmentChange() {
     const dept = this.departments.find(d => d.departmentCode === this.selectedDepartment);
